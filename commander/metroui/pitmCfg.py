@@ -1,1 +1,1 @@
-../piTempMonitor/master/pitmCfg.py
+../../master/pitmCfg.py
