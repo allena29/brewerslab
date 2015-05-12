@@ -22,11 +22,13 @@ class pitmRelay:
 
 
 	def __init__(self):
-		self.logging=2		# 1 = syslog, 2 = stderr
+		self.logging=3		# 1 = syslog, 2 = stderr
 		self.cfg = pitmCfg()
 		self.gpio = gpiotools()
 		self.lcdDisplay=pitmLCDisplay()
 		
+		self.fermCoolActiveFor=-1
+		self.fermHeatActiveFor=-1
 
 		self.fridgeCompressorDelay=300		
 		self.fridgeCool=False
@@ -51,10 +53,10 @@ class pitmRelay:
 		
 		self._mode="UNKNOWN"
 
-		self._gpioFermCool=False
-		self._gpioFermHeat=False
-		self._gpioPump=False
-		self._gpioExtractor=False
+		self._gpioFermCool=None
+		self._gpioFermHeat=None
+		self._gpioPump=None
+		self._gpioExtractor=None
 		self.gpio.output("fermCool",0)
 		self.gpio.output('pump',0)
 		self.gpio.output('extractor',0)
@@ -89,10 +91,15 @@ class pitmRelay:
 		self.gpio.output('tSsrFan',0)	
 
 	
-	def _log(self,msg):
+	def _log(self,msg,importance=1):
 		if self.logging == 1:
-			syslog.syslog(syslog.LOG_DEBUG, msg)
+			if importance > 0:
+				syslog.syslog(syslog.LOG_DEBUG, msg)
 		elif self.logging == 2:
+			sys.stderr.write("%s\n" %(msg))
+		elif self.logging == 3:
+			if importance > 0 or ("%s" %(time.time())).split(".")[0][-3:] == "000":
+				syslog.syslog(syslog.LOG_DEBUG, msg)
 			sys.stderr.write("%s\n" %(msg))
 
 			
@@ -116,7 +123,7 @@ class pitmRelay:
 			try:
 				cm = json.loads( data )
 			except:
-				self._log("Error unickling input message\n%s" %(data))
+				self._log("Error decoding input message\n%s" %(data))
 				return
 
 			checksum = cm['_checksum']
@@ -129,7 +136,7 @@ class pitmRelay:
 			time.sleep(1)	
 
 	def zoneTempThread(self):
-		self._log("Listening for temeprature from Zone A")
+		self._log("Listening for temperature from Zone A")
 		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 		sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 		sock.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_TTL, 4)
@@ -142,7 +149,7 @@ class pitmRelay:
 			try:
 				cm = json.loads( data )
 			except:
-				self._log("Error unickling input message\n%s" %(data))
+				self._log("Error decoding input message\n%s" %(data))
 				return
 
 			checksum = cm['_checksum']
@@ -153,6 +160,7 @@ class pitmRelay:
 					if cm['currentResult'][self.cfg.fermProbe]['valid']:
 						self.zoneTemp = float( cm['currentResult'][self.cfg.fermProbe]['temperature'])
 						self.zoneTempTimestamp=time.time()
+						self._log("Temp: %s Target: %s fridgeHeat: %s/%s (active %s) fridgeCool: %s/%s (active %s / delay %s)" %(self.zoneTemp, self.zoneTarget, self.fridgeHeat,self._gpioFermHeat, self.fermHeatActiveFor,self.fridgeCool,self._gpioFermCool,self.fermCoolActiveFor, self.fridgeCompressorDelay),importance=0)
 					else:
 						self.lcdDisplay.sendMessage("Temp Result Error",2)
 
@@ -160,14 +168,16 @@ class pitmRelay:
 				#zoneDownTarget when we need to start cooling
 				#zoneUpTarget when we need to start heating
 				#zoneTarget when we need to stop cooling/heating
-				(self.zoneUpTarget,self.zoneDownTarget,self.zoneTarget) = cm['tempTargetFerm']
+				(self_zoneUpTarget,self_zoneDownTarget,self_zoneTarget) = cm['tempTargetFerm']
+				if self_zoneUpTarget < 5 or self_zoneDownTarget <5  or self_zoneTarget < 5:
+					self._log("Temp Target is invalid %s" %(cm['tempTargetFerm']))
+				else:
+					(self.zoneUpTarget,self.zoneDownTarget,self.zoneTarget) = cm['tempTargetFerm']
 			
-				print cm['tempTargetFerm']
 	
 
 	
 	def zoneThread(self):
-		print "zone realy thread active"
 		while True:
 
 
@@ -217,10 +227,12 @@ class pitmRelay:
 				self._gpioFermHeat=False
 				self._gpioExtractor=True
 			elif self._mode == "ferm":
-				self.gpio.output('pump',0)
-				self.gpio.output('extractor',0)
-				self._gpioPump=False
-				self._gpioExtractor=False
+				if self._gpioPump == None:
+					self.gpio.output('pump',0)
+					self._gpioPump=False
+				if self._gpioExtractor == None:
+					self.gpio.output('extractor',0)
+					self._gpioExtractor=False
 				if self.zoneTemp > 50 or self.zoneTemp <4:
 					self._log("Unrealistic Temperature Value %s:%s %s\n" %(self.zoneTemp,self.zoneTempTimestamp,self._mode))
 				else:
@@ -229,17 +241,21 @@ class pitmRelay:
 						if self.zoneTemp < 3:
 							self._log("not setting heat required as we have a very low temp")
 						else:
-							self._log("Heating Requied")
+							self._log("Heating Requied %s < %s" %(self.zoneTemp,self.zoneUpTarget))
 							self.gpio.output('fermCool',0)
 							self._gpioFermCool=False
 							self.fridgeCompressorDelay=300
 							self.fridgeHeat=True
 					
 					if self.fridgeHeat:
+						sys.stderr.write("ferm heat turned on\n")
 						self.gpio.output('fermHeat',1)
 						self.lcdDisplay.sendMessage(" Heating",2)
+						if self.fermHeatActiveFor == -1:
+							self.fermHeatActiveFor=time.time()
+
 					if self.zoneTemp > self.zoneDownTarget and not self.fridgeCool:
-						self._log("Cooling Required")
+						self._log("Cooling Required %s > %s" %(self.zoneTemp,self.zoneDownTarget))
 						self.gpio.output('fermHeat',0)	
 						self._gpioFermHeat=False
 						self.fridgeCool=True
@@ -248,27 +264,46 @@ class pitmRelay:
 					if self.fridgeCool:
 						if self.fridgeCompressorDelay > 0:
 							self.lcdDisplay.sendMessage(" %s - Fridge Delay" %(self.fridgeCompressorDelay),2)
-							self._log("Compressor Delay %s\n" %(self.fridgeCompressorDelay))
+							sys.stderr.write("Fridge Compressor Delay\n")
+#							self._log("Compressor Delay %s\n" %(self.fridgeCompressorDelay))
 							self.gpio.output('fermCool',0)
 							self._gpioFermCool=False
 						else:
-							self.lcdDisplay.sendMessage(" Cooling",2)
-							self._gpioFermCool=True
-							self.gpio.output('fermCool',1)
+							if (time.time() - self.fermCoolActiveFor > 1800) and self.fermCoolActiveFor > 0:
+								self.fridgeCompressorDelay=601
+								self._log("Cooling has been active for %s - resting fridge" %(time.time()-self.fermCoolActiveFor))
+								self.fermCoolActiveFor = -1
+								self._gpioFermCool=False
+								sys.stderr.write("Fridge turned off\n")
+								self.gpio.output('fermCool',0)
+							else:
+								self.lcdDisplay.sendMessage(" Cooling",2)
+								self._gpioFermCool=True
+								sys.stderr.write("Fridge turned on\n")
+								self.gpio.output('fermCool',1)
+								if self.fermCoolActiveFor == -1:
+									self.fermCoolActiveFor=time.time()
 
 					if self.fridgeHeat and self.zoneTemp > self.zoneTarget - 0.05:
-						self._log("Target Reached stopping heat")
+						self._log("Target Reached stopping heat active for %s" %(time.time()-self.fermHeatActiveFor))
 						self.fridgeHeat=False
+				
 						self.gpio.output('fermHeat',0)
+						self.gpio.output('fermCool',0)
 						self._gpioFermHeat=False
 						self.fridgeCompressorDelay=301
+						self.fermCoolActiveFor = -1
+						self.fermHeatActiveFor = -1
 
 					if self.fridgeCool and self.zoneTemp < self.zoneTarget + 0.05:
-						self._log("Target Reached stopping cooling")
+						self._log("Target Reached stopping cooling active for %s" %(time.time()-self.fermCoolActiveFor))
 						self.fridgeCool=False
 						self.gpio.output("fermCool",0)
+						self.gpio.output("fermHeat",0)
 						self.fridgeCompressorDelay=301
 						self._gpioFermCool=False
+						self.fermCoolActiveFor = -1
+						self.fermHeatActiveFor = -1
 
 				self.fridgeCompressorDelay=self.fridgeCompressorDelay-1
 			elif self._mode.count( "pum" ):				
@@ -279,7 +314,6 @@ class pitmRelay:
 
 
 	def broadcastResult(self):
-		print "advertising our Relay capabiltiies"
 		sendSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 		sendSocket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 3)
 		controlMessage={}
@@ -294,7 +328,6 @@ class pitmRelay:
 			controlMessage['gpioExtractor']=self._gpioExtractor
 			controlMessage['gpioFermCool']=self._gpioFermCool
 			controlMessage['gpioFermHeat']=self._gpioFermHeat
-			print controlMessage
 			msg= json.dumps(controlMessage)
 			msg= "%s%s" %(msg," "*(1200-len(msg))) 
 			sendSocket.sendto( msg ,(self.cfg.mcastGroup,self.cfg.mcastRelayPort))
