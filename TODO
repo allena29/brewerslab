@@ -4,3 +4,5 @@
 
 
 * Add HLT delay/fermentation adjustment to web 
+
+* CRS Calcultion doesn't take recipe alkalinity required into account
