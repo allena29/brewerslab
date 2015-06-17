@@ -77,11 +77,19 @@ while row:
 	row=result.fetch_row()
 
 
+RESULT=[]
 
 spaceRegex=re.compile("^\s*\-\s*")
 for step in STEPS:
 	if TRACKSTEP.has_key(step):
 		(a,z) =  STEPTIME[ step ]
 		print spaceRegex.sub('',step), " {",time.ctime(float(a)),"-",time.ctime(float(z)),"}"
+		RESULT.append( {'step': spaceRegex.sub('',step),'a':float(a),'z':float(z),'tracks':[]} )
 		for track in TRACKSTEP[step]:
+			RESULT[-1]['tracks'].append( ( track['name'],track['artist']['#text'] ) )
 			print " -", track['name']," by ",track['artist']['#text']
+
+
+o=open("%s.%s.%s.lastfm.json" %(sys.argv[3],sys.argv[2],sys.argv[1]) ,"w")
+o.write( json.dumps(RESULT) )
+o.close()
