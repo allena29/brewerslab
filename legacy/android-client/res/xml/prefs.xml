@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+   xmlns:android="http://schemas.android.com/apk/res/android" >
+   <EditTextPreference android:title="Server URL" android:key="serverUrl" android:summary="Hostname for the brewerslab server"></EditTextPreference>
+   <EditTextPreference android:title="Server Port" android:key="serverPort" android:summary="Port Number for the brewerslab server (default 54659)"></EditTextPreference>   
+</PreferenceScreen>

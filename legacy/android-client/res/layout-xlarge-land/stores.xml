@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<!-- layout-xlarge-landscape -->
+
+
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="horizontal" android:layout_width="fill_parent"
+	android:layout_height="fill_parent" android:id="@+id/storesOuterLayout">
+
+
+
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		android:orientation="vertical" android:layout_width="fill_parent"
+		android:id="@+id/storesOuter1of3" android:layout_height="fill_parent">
+
+		<TextView android:text="Stores" android:textAppearance="?android:attr/textAppearanceLarge"
+			android:layout_height="wrap_content" android:layout_width="wrap_content" />
+
+
+
+
+
+
+		<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			android:orientation="vertical" android:layout_width="fill_parent"
+			android:id="@+id/storesInner1of3" android:layout_height="fill_parent">
+			<!-- listview will be added here -->
+		</LinearLayout>
+
+
+	</LinearLayout>
+
+
+
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		android:orientation="vertical" android:layout_width="fill_parent"
+		android:visibility="gone" android:id="@+id/storesOuter2of3"
+		android:layout_height="fill_parent">
+
+		<TextView android:text="StoresXXXXXXXXXXXXXXXXXXX"
+			android:id="@+id/storesTitle2" android:textAppearance="?android:attr/textAppearanceLarge"
+			android:layout_height="wrap_content" android:layout_width="wrap_content" />
+
+
+
+
+
+
+		<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			android:orientation="vertical" android:layout_width="fill_parent"
+			android:id="@+id/storesInner2of3" android:layout_height="fill_parent">
+
+			<ListView android:layout_height="wrap_content"
+				android:focusableInTouchMode="true" android:clickable="true"
+				android:id="@+id/storesStockItems" android:layout_width="match_parent" />
+
+
+		</LinearLayout>
+
+
+	</LinearLayout>
+
+
+
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		android:orientation="vertical" android:layout_width="fill_parent"
+		android:visibility="gone" android:id="@+id/storesOuter3of3"
+		android:layout_height="fill_parent">
+
+		<TextView android:text="StoresXXXXXXXXXXXXXXXXXXX"
+			android:id="@+id/storesTitle3" android:textAppearance="?android:attr/textAppearanceLarge"
+			android:layout_height="wrap_content" android:layout_width="wrap_content" />
+		<TextView android:text="StoresXXXXXXXXXXXXXXXXXXX"
+			android:id="@+id/storesDescription" android:textAppearance="?android:attr/textAppearanceLarge"
+			android:layout_height="wrap_content" android:layout_width="wrap_content" />
+		<TextView android:text="StoresXXXXXXXXXXXXXXXXXXX"
+			android:id="@+id/storesTotalCost" android:textAppearance="?android:attr/textAppearanceLarge"
+			android:layout_height="wrap_content" android:layout_width="wrap_content" />
+		<TextView android:text="StoresXXXXXXXXXXXXXXXXXXX"
+			android:id="@+id/storesTotalQty" android:textAppearance="?android:attr/textAppearanceLarge"
+			android:layout_height="wrap_content" android:layout_width="wrap_content" />
+		
+
+
+
+
+
+		<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			android:orientation="vertical" android:layout_width="fill_parent"
+			android:id="@+id/storesInner3of3" android:layout_height="fill_parent">
+
+			<ListView android:layout_height="wrap_content"
+				android:focusableInTouchMode="true" android:clickable="true"
+				android:id="@+id/storesPurchases" android:layout_width="match_parent" />
+
+
+		</LinearLayout>
+
+
+	</LinearLayout>
+
+	    
+	    
+
+	    
+	    
+</LinearLayout>  

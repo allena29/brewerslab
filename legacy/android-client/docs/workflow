@@ -1,0 +1,123 @@
+
+
+fluffycloud..task.execute() -> [x]common.decodeXmlRpc() --> [x]
+
+
+each activity instantiates an instance of <x>Common, which has the logic in place
+
+each <x> is given a distinct name for all activities in that type 
+	(i.e. stores, stores2, stores3 are grouped into stores  and use storeCommon)
+
+when calling an xmlrpc task it is done via fluffycloud, each time a new instance is instantiated 
+the following is needed
+	themId
+	themStore	-> existing instance of the storeCommon
+	themWelcome -> existing instance of the welcomeCommon
+	cloudUser
+	cloudDevice
+	cloudKey
+
+doInBackground() of fluffy cloud has a mapping of operations to number of arguments
+
+	
+postExecute() has a if(){ for each "themId" to call decodeXmlRpc on the correct logic
+
+
+The decodeXmlRpc() in the common is primarily responsible with carrying out decodes and calling
+a more granular operation on the activity class
+
+
+Note boss and themId are not the same, in general boss may well have many activities (stores/stores2/stores3),
+but there is generally one storescommon for each set of related bosses
+
+Example workflow:
+
+	stores.java
+		_init_
+			storesCommon storeLogic = new storesCommon();
+		onCreate()
+			storesCommon.boss = "stores";			
+
+			cloudtask.themStore = storeLogic;			
+			cloudtask.themId = "stores";
+			cloudtask.hostnameIp = hostnameIp;
+			cloudtask.cloudKey = shrdPrefs.getString("cloudkey", "expired");
+			cloudtask.cloudDevice = shrdPrefs.getString("clouddevice","<testdevice>");
+			cloudtask.cloudUser = shrdPrefs.getString("clouduser","<user>");
+			cloudtask.portNum = portNum+1;
+			cloudtask.execute("listStoreCategories");
+				:
+				:
+				v
+		fluffycloud 	run()
+			download xmlrpc
+						onPostExecute()
+			themId == stores
+				themStore.decodeXmlRpc(jsonResponse,taskOperation,exception);
+					:
+					:
+					v	
+				storeLogic.decodeXmlRpc()	(i.e. storesCommon)
+				if(taskOperation/boss){
+					// determins which operation might be called
+					
+				}
+				
+				
+	storesCommon
+	
+		findErrorPresentation
+		  - use boss
+		decodeXmlRpc 
+		   - should be called from fluffyhttp.
+		   - call out to sub operation
+		   if(taskOperation==x){
+		   		subOperation();
+		   }
+		   
+		   
+		 suboperation() - in the case of tablet will do something striaghtway.
+		 				- in the case of phone it will be called by the subsequent screen.
+		 
+		   if(phone){ 
+		   
+		   }else{
+		   
+		   }
+		   
+Notes for adding new functions to recipe:
+
+
+ - fluffycloud - needs taskOperation listed with requestArgs
+ - common - decodeXmlRpc needs an action adding to deal with this particular request		   
+      		   	(but this may delegate gui updates to a common piece of code) 
+
+
+		   
+Notes for splitting up for the phone:
+
+ 1 - copy ane example (e.g. welcome2 is fiarly clean) 		   
+ 2 - in common/Logic
+ 		- add a new typeXBoss refernce at the top  		
+ 		- clause in findErrorPresenter
+ 		
+ 3 - create new xml
+ 		- update id's to make sure uniqueu (i.e. Inner2 -- Inner3, Outer2 -- Outer)
+ 		
+ 4 - in new class
+ 		- set the correct boss in the onCreate method
+
+ 5 - in the common class the decodexmlrpc method should be set to call use one of the 
+ 	 visible activity screens in order to trigger a new intent and save the json
+ 	 	(i.e. goToWelcome2)
+ 	 	
+ 6 - in the common class the sub-method which is called from decodexmlrpc will need
+ 	some awareness of tablet vs phone  	 
+ 		
+ NOTE: 
+ 	onClicks of listViews should be shareable in the common (like nextStepFromBrewlog)
+ 	if all the logic is still in the logics decodexmlrpc method it should be moved into a sub method
+ 	this can be called from within the new screen.
+ 	
+ 	
+ 

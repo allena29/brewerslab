@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<!-- 				layout									 -->
+
+
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:id="@+id/storesOuterLayoutPage3">   
+	
+
+    
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	    android:orientation="vertical"
+	    android:layout_width="fill_parent"
+	    android:id="@+id/storesOuter3of3" android:layout_height="fill_parent">
+	    
+	    	<TextView android:text="Stores" android:id="@+id/storesTitle3" android:textAppearance="?android:attr/textAppearanceLarge" android:layout_height="wrap_content" android:layout_width="wrap_content">
+			</TextView>	    
+
+
+	    	<TextView android:text="Stores" android:id="@+id/storesTotalQty" android:layout_height="wrap_content" android:layout_width="wrap_content">
+			</TextView>	    
+	    	<TextView android:text="Stores" android:id="@+id/storesTotalCost" android:layout_height="wrap_content" android:layout_width="wrap_content">
+			</TextView>	    
+
+
+	    	<TextView android:text="Stores" android:id="@+id/storesDescription" android:layout_height="wrap_content" android:layout_width="wrap_content">
+			</TextView>	    
+			
+
+			<Button 	android:text="Add Purchase" 
+						android:visibility="visible" 
+						android:id="@+id/Bbutton2" 
+						android:layout_width="wrap_content" android:layout_height="wrap_content"
+						android:onClick="onClickAddPurchase">
+			</Button>
+			
+			<View android:id="@+id/divider"
+			    android:background="@drawable/gradient"
+			    android:layout_width="fill_parent"
+			    android:layout_height="3dp"
+			    android:visibility="visible" 
+			    android:layout_below="@+id/Bdivider1" />
+			
+			<TextView android:text="Purchases" android:textStyle="bold" android:layout_height="wrap_content" android:layout_width="wrap_content">
+			</TextView>	    
+			
+			<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			    android:orientation="vertical"
+			    android:layout_width="fill_parent"
+			    android:id="@+id/storesInner3of3" android:layout_height="fill_parent">
+				<!--  listview will be added here -->
+			</LinearLayout>
+	    		    
+    
+	</LinearLayout>
+    
+</LinearLayout>

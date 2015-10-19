@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+
+
+
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:id="@+id/BouterLayoutPage2">   
+	
+
+	<!-- 							 2nd third 										-->    
+    
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	    android:orientation="vertical"
+	    android:layout_width="wrap_content"
+	    android:id="@+id/brewdayOuter2of3" android:layout_height="fill_parent">
+		
+	    
+	    
+			<TextView android:text=" " android:id="@+id/brewdayStepName" android:textAppearance="?android:attr/textAppearanceLarge" android:layout_height="wrap_content" android:layout_width="wrap_content"></TextView>
+			
+			<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			    android:orientation="vertical"
+			    android:layout_width="fill_parent"
+			    android:id="@+id/brewdayInner2of3top" android:layout_height="wrap_content">
+			    	
+				<TextView android:id="@+id/brewdayStepComplete" android:text=" " android:layout_height="wrap_content" android:layout_width="wrap_content"></TextView>
+				<ScrollView android:id="@+id/BscrollView4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:padding="2dip">
+					<TextView android:id="@+id/brewdayStepText" android:text=" " android:layout_height="wrap_content" android:layout_width="wrap_content"></TextView>				
+				</ScrollView>
+ 				<Button android:text="Mark Complete" android:visibility="invisible" android:id="@+id/Bbutton3" android:layout_width="wrap_content" android:layout_height="wrap_content"></Button>
+ 			 			
+			</LinearLayout>
+	    		    
+			    
+			<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			    android:orientation="vertical"
+			    android:layout_width="fill_parent"
+			    android:id="@+id/brewdayInner2of3bottom" android:layout_height="wrap_content">
+			    
+			    
+				<ProgressBar android:layout_height="35px" android:layout_width="fill_parent" android:id="@+id/brewdaySubstepsProgress" style="?android:attr/progressBarStyleHorizontal"></ProgressBar>
+				
+				
+				<!--  listview will be added here -->
+
+
+ 
+			</LinearLayout>    
+    
+    
+    
+	</LinearLayout>
+    
+
+
+    
+</LinearLayout>

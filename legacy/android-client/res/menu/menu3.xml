@@ -1,0 +1,6 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">	  	
+ 	<item android:title="Reset" android:id="@+id/menuReset"></item>
+ 	<item android:title="Calclog" android:id="@+id/menuCalclog"></item>
+ 		 	
+</menu>
+   

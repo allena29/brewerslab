@@ -1,0 +1,8 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+ 	<item android:title="Stores" android:id="@+id/menuStores"></item>
+ 	<item android:title="Re-Authorise" android:id="@+id/menuReauthorise"></item>	  	
+ 	<item android:title="Reset" android:id="@+id/menuReset"></item>
+ 	<item android:title="Settings" android:id="@+id/menuSettings"></item>
+ 		 	
+</menu>
+   

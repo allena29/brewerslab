@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<!-- 				layout									 -->
+
+
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:id="@+id/storesOuterLayoutPage2">   
+	
+
+    
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	    android:orientation="vertical"
+	    android:layout_width="fill_parent"
+	    android:id="@+id/storesOuter2of3" android:layout_height="fill_parent">
+	    
+	    	<TextView android:text="Stores" android:id="@+id/storesTitle2" android:textAppearance="?android:attr/textAppearanceLarge" android:layout_height="wrap_content" android:layout_width="wrap_content">
+			</TextView>	    
+
+			
+
+			
+			
+			<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+			    android:orientation="vertical"
+			    android:layout_width="fill_parent"
+			    android:id="@+id/storesInner2of3" android:layout_height="fill_parent">
+			    
+			    
+			    <ListView android:layout_height="wrap_content" android:focusableInTouchMode="true" android:clickable="true" android:id="@+id/storesStockItems" android:layout_width="match_parent"></ListView>
+			    	
+
+			</LinearLayout>
+	    		    
+    
+	</LinearLayout>
+    
+</LinearLayout>
