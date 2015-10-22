@@ -8,14 +8,28 @@ import time
 import json
 import _mysql
 
-# ime(tm_year=2015, tm_mon=6, tm_mday=15, tm_hour=19, tm_min=47, tm_sec=7, tm_wday=0, tm_yday=166, tm_isdst=1)
 
+# command-line argumnets
+# 1= Scrobbled Year
+# 2= Scrobble Month
+# 3= Scrobble Date
+# 4= Brewlog Year
+# 5= Brewlog Month
+# 6= Brewlog Day
 
+if len(sys.argv) < 7:
+	print "Need date of scrobbles and date"
+	sys.exit(0)
+
+if not os.path.exists("last.fm.apikey"):
+	print "Need a last.fm apikey"
+	sys.exit(1)
 apiKey=open("last.fm.apikey").read()[:-1]
 lastFmUser="allena29"
 db=_mysql.connect(host="localhost",user="brewerslab",passwd='beer',db="brewerslab")
 
 baseTime=time.mktime( ( int(sys.argv[1]),int(sys.argv[2]),int(sys.argv[3]),5,0,0,0,0,0))
+baseTime2=time.mktime( ( int(sys.argv[4]),int(sys.argv[5]),int(sys.argv[6]),5,0,0,0,0,0))
 
 TRACKS={}
 TRACKTIME=[]
@@ -27,11 +41,12 @@ lastTrack=("","")
 
 #print "Base Time: ",time.ctime(baseTime)
 for c in range(6):
-	
 	segment=baseTime+(c*3*60*60)
 #	print "",time.ctime(segment),"-",time.ctime(segment+10799)
 	if not os.path.exists( "%s.%s.lastfm.scrobbles" %(lastFmUser,segment)):
+		print "Finding last.fm tracks for %s from %s-%s-%s (3 hour segment %s)" %(lastFmUser, sys.argv[1],sys.argv[2],sys.argv[3],c)
 		url="http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=%s&from=%s&to=%s&limit=200&api_key=%s&format=json" %(lastFmUser,int(segment),int(segment+10799),apiKey)
+		print url
 		o=open( "%s.%s.lastfm.scrobbles" %(lastFmUser,segment),"w")
 		f=urllib.urlopen(url)
 		o.write(f.read())
@@ -49,10 +64,6 @@ for c in range(6):
 				TRACKTIME.append( x['date']['uts'] )
 
 TRACKTIME.sort()
-TRACKTIME.sort()
-
-#for track in TRACKTIME:
-#	print time.ctime(float(track)),TRACKS[track]['name'],"by",TRACKS[track]['artist']['#text']
 
 
 lastStepTime=baseTime
@@ -90,6 +101,6 @@ for step in STEPS:
 			print " -", track['name']," by ",track['artist']['#text']
 
 
-o=open("%s.%s.%s.lastfm.json" %(sys.argv[3],sys.argv[2],sys.argv[1]) ,"w")
+o=open("%s.%s.%s.lastfm.json" %(sys.argv[6],sys.argv[5],sys.argv[4]) ,"w")
 o.write( json.dumps(RESULT) )
 o.close()
