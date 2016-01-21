@@ -1,8 +1,10 @@
 
+* Convert brewday pages over to newer process.py type format.
+  - better to build the full page rather than trying to manage the AJAX stuff dynamically.
+
+* Add alternatives for Hops
 * Add scale recipe to editRecipe
 * Add change process to editRecipe
-
-
-* Add HLT delay/fermentation adjustment to web 
-
+* Add ingredient page
+* Add HLT delay
 * CRS Calcultion doesn't take recipe alkalinity required into account
