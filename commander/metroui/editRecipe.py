@@ -1,3 +1,4 @@
+from __future__ import division
 #!/usr/bin/python
 import re
 import sys
@@ -152,10 +153,10 @@ class editRecipe:
 					<p>
 		""" %(self.activeStats)
 		cursor=con.cursor()
-		cursor.execute("select recipeName,process,target_mash_temp,mash_efficiency,alkalinity from gRecipes WHERE recipeName = '%s' ;" %(self.recipeName))
+		cursor.execute("select recipeName,process,target_mash_temp,mash_efficiency,alkalinity,fermTemp,fermLowTemp,fermHighTemp from gRecipes WHERE recipeName = '%s' ;" %(self.recipeName))
 		mashEfficiency=0
 		for row in cursor:
-			(recipeName,process,target_mash_temp,mashEfficiency,alkalinity)=row
+			(recipeName,process,target_mash_temp,mashEfficiency,alkalinity,fermTemp,fermLowTemp,fermHighTemp)=row
 		cursor=db.query ("select recipe,estimated_og,estimated_fg,estimated_abv,estimated_ibu,topupvol,boil_vol,batchsize from gRecipeStats WHERE recipe='%s' AND process = '%s' ORDER BY entity DESC LIMIT 0,1" %(recipeName,process))
 		result=db.use_result()
 		row=result.fetch_row()
@@ -185,13 +186,53 @@ class editRecipe:
 			print "<b>Batch Size:</b> %.1f L<BR>" %(float(batchsize))
 
 		if self.editable:	
+			print "<b>Target Ferm Temp:</b> <select id='fermtemp'>"
+			selected=""
+			NotDone=False
+			for c in range(25):
+				for d in range(5):
+					selected=""
+					C=float(c+5+(d/5))
+					if C > float(fermTemp)-0.001 and not NotDone:
+						selected="SELECTED" 
+						NotDone=True
+					print "<option value='%.1f' %s>%.1f degC</option>" %(C,selected,C)
+				selected=""
+			print "</select> (Low: "
+			print "<select id='fermlowtemp'>"
+
+			selected=""
+			NotDone=False
+			for c in range(25):
+				for d in range(5):
+					C=float(c+5+(d/5))
+					if C > float(fermLowTemp)-0.001 and not NotDone:
+						selected="SELECTED" 	
+						NotDone=True
+					print "<option value='%.1f' %s>%.1f degC</option>" %(C,selected,C)
+				selected=""
+			print "</select>, High: "
+			print "<select id='fermhightemp'>"
+			selected=""
+			NotDone=False
+			for c in range(25):
+				for d in range(5):
+					selected=""
+					C=float(c+5+(d/5))
+					if C > float(fermHighTemp)-0.001 and not NotDone:
+						selected="SELECTED" 
+						NotDone=True
+					print "<option value='%.1f' %s>%.1f degC</option>" %(C,selected,C)
+				selected=""
+			print "</select>)"
+			print """<a href='javascript:adjustFermTemp()'><i class="icon-checkmark fg-blue"></i></a><br>"""
 			print "<b>Target Mash Temp:</b> <select id='mashtemp'>"
 			for c in range(10):
 				selected=""
 
 				if float(target_mash_temp) <= float(c+61) and float(target_mash_temp) > float(c+60):
 					selected="SELECTED" 
-				print "<option value='%s' %s>%s %%</option>" %(c+61,selected,c+61)
+				print "<option value='%s' %s>%s degC</option>" %(c+61,selected,c+61)
 			print "</select>"
 			print """<a href='javascript:adjustMashTemp()'><i class="icon-checkmark fg-blue"></i></a><br>"""
 			print "<b>Mash Efficiency:</b> <select id='efficiency'>"
@@ -202,12 +243,38 @@ class editRecipe:
 				print "<option value='%s' %s>%s %%</option>" %(c+55,selected,c+55)
 			print "</select>"
 			print """<a href='javascript:adjustMashEfficiency()'><i class="icon-checkmark fg-blue"></i></a><br>"""
+
+			print "<b>Alkalinity:</b> <select id='alkalinity'>"
+			for c in range(50):
+				selected=""
+				if float(c*5)+5 == float(alkalinity):
+					selected="SELECTED" 
+				print "<option value='%s' %s>%s CaCo3 mg/l</option>" %((c*5)+5,selected,(c*5)+5)
+			print "</select>"
+			print """<a href='javascript:adjustAlkalinity()'><i class="icon-checkmark fg-blue"></i></a><br>"""
+
 		else:
+			print "<b>Target Ferm Temp:</b> %.1f'C (Low: %.1f'C High: %.1f'C) <br>" %(float(fermTemp),float(fermLowTemp),float(fermHighTemp))
 			print "<b>Target Mash Temp:</b> %.1f'C<br>" %(float(target_mash_temp))
 			print "<b>Mash Efficiency:</b> %.0f %%<br>" %(float(mashEfficiency))
+			print "<b>Alkalinity:</b> %.1f CaCo3 mg/l<br>" %(float(alkalinity))
 
 
-		print "<b>Process:</b> %s<BR>" %(process)
+
+		if self.editable:
+			print "<b>Process:</b>  <select id='process'>" 
+			processcursor=con.cursor()
+			processcursor.execute("select process from gProcesses ORDER BY process DESC")
+			for processrow in processcursor:
+				(processx,)=processrow
+				if processx == process:
+					print "<option SELECTED>%s</option>" %(processx)
+				else:
+					print "<option>%s</option>" %(processx)
+			print "</select> <a href='javascript:adjustProcess()'><i class='icon-checkmark fg-blue'></i></a> "	
+			print "<br>"
+		else:
+			print "<b>Process:</b> %s<BR>" %(process)
 
 		print """
 		<b>Estimated Gravity:</b> %.3f OG - %.3f FG<br>
@@ -220,11 +287,10 @@ class editRecipe:
 
 
 		print """
-		<b>Alkalinity:</b> %.1f CaCo3 mg/l<br>
 		<b>Boil Volume:</b> %.1f L<br>
 		<b>Topup Volume:</b> %.1f L<br>
 		  
-		""" %(float(alkalinity),float(boilVolume),float(topup) ) 
+		""" %(float(boilVolume),float(topup) ) 
 
 		if not self.export and not self.editable:
 			print "<b>Calclog:</b> <a href='calclog.py?recipeName=%s&noheader=%s'>View Log</a><BR>" %(self.recipeName,'True')
@@ -376,8 +442,8 @@ class editRecipe:
 		sumIbu=0
 		if self.editable:
 
-			hop_values=[0.009,0.001,5,15,60,20.222]
-			hop_labels = {60:'Copper (60min)',15:'Aroma (15min)',5:'Finishing (5min)',0.001:'Flameout (0min)',0.009:'Dryhop',20.222:'First Wort Hop' }
+			hop_values=[0.02,0.06,0.08,5,15,60,20.222]
+			hop_labels = {60:'Copper (60min)',15:'Aroma (15min)',5:'Finishing (5min)',0.08:'Flameout (0min)',0.06:'Whirlpool/Hopback (0min)' , 0.02:'Dryhop',20.222:'First Wort Hop' }
 			print """
 			<tr><td><a href="javascript:addItem('%s')"><i class='icon-plus fg-green'></i></a></td>
 			<td><select id='%sQty'>""" %(itemType,itemType)
@@ -672,8 +738,19 @@ if __name__ == '__main__':
 		}
 
 
+		function adjustAlkalinity(){
+		url="editIngredient.py?recipe=%s&type=null&action=changeAlkalinity&alkalinity="+document.getElementById('alkalinity').value;
+		window.location.replace(url);
+		}
+		function adjustFermTemp(){
+		url="editIngredient.py?recipe=%s&type=null&action=changeFermTemp&fermtemp="+document.getElementById('fermtemp').value+"&fermlowtemp="+document.getElementById('fermlowtemp').value+"&fermhightemp="+document.getElementById('fermhightemp').value;
+		window.location.replace(url);
+		}
+		function adjustProcess(){
+		url="editIngredient.py?recipe=%s&type=null&action=changeProcess&process="+document.getElementById('process').value;
+		window.location.replace(url);
+		}
 		function adjustMashTemp(){
-		
 		url="editIngredient.py?recipe=%s&type=null&action=changeMashTemp&mashtemp="+document.getElementById('mashtemp').value;
 		window.location.replace(url);
 		}
@@ -718,7 +795,7 @@ if __name__ == '__main__':
 			document.getElementById(itemtype+'QtyCell'+i).innerHTML=html;
 		}
 		</script>
-		""" %(form['recipeName'].value,form['recipeName'].value,form['recipeName'].value,form['recipeName'].value,form['recipeName'].value,form['recipeName'].value)
+		""" %(form['recipeName'].value,form['recipeName'].value,form['recipeName'].value,form['recipeName'].value,form['recipeName'].value,form['recipeName'].value,form['recipeName'].value,form['recipeName'].value,form['recipeName'].value)
 
 
 	print "<div class=\"container\">"

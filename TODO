@@ -1,8 +1,20 @@
 
+* Convert brewday pages over to newer process.py type format.
+  - better to build the full page rather than trying to manage the AJAX stuff dynamically.
+
+* Add alternatives for Hops
 * Add scale recipe to editRecipe
 * Add change process to editRecipe
-
-
-* Add HLT delay/fermentation adjustment to web 
-
+* Add ingredient page
+* Add HLT delay
 * CRS Calcultion doesn't take recipe alkalinity required into account
+
+* Add efficiency
+80% FGDB x 46 = 37 PPG
+If 4% moisture => 76.8% FGAI x 46 = 35 PPG
+If F/C = 2%, => 74.8% CGAI x 46 = 34 PPG 	
+Efficiency is usually quoted with respect to %Extract FGDB. (ex. 37 PPG)
+If you get 7 gallons of 1.038 from 9.5 lbs grain after mashing & lautering (ex. 7.38/9.5=28 PPG), then 28/37 = 76% Efficiency
+
+
+

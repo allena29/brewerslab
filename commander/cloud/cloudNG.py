@@ -207,18 +207,53 @@ class brewerslabCloudApi:
 
 
 		
+	def setAlkalinity(self,username,recipeName, newAlkalinity,doRecalculate="1"):
+		# flag recipe rcalc at the recipe level
+		ourRecipe = self.dbWrapper.GqlQuery("SELECT * FROM gRecipes WHERE owner = :1 AND recipename = :2", username,recipeName)
+		for recipe in ourRecipe.fetch(500):
+			if not doRecalculate == "1":
+				recipe.calculationOutstanding=True
+			recipe.alkalinity=float(newAlkalinity)
+			recipe.put()
+		if doRecalculate == "1":
+			self.calculateRecipe(username,recipeName)
+			self.compile(username,recipeName,None)
+
+	def setFermTemp(self,username,recipeName, newFermTemp,newLowFermTemp=None,newHighFermTemp=None,doRecalculate="1",):
+		# flag recipe rcalc at the recipe level#
+		sys.stderr.write(" %s %s \n" %(newLowFermTemp,newHighFermTemp))
+		if not newLowFermTemp:
+			newLowFermTemp=float(newFermTemp)-0.3
+		if not newHighFermTemp:
+			newHighFermTemp=float(newFermTemp)+0.3
+
+		sys.stderr.write(" %s %s \n" %(newLowFermTemp,newHighFermTemp))
+		
+		ourRecipe = self.dbWrapper.GqlQuery("SELECT * FROM gRecipes WHERE owner = :1 AND recipename = :2", username,recipeName)
+		for recipe in ourRecipe.fetch(500):
+			if not doRecalculate == "1":
+				recipe.calculationOutstanding=True
+			recipe.fermTemp=float(newFermTemp)
+			recipe.fermLowTemp=float(newLowFermTemp)
+			recipe.fermHighTemp=float(newHighFermTemp)
+			recipe.put()
+		if doRecalculate == "1":
+			self.calculateRecipe(username,recipeName)
+			self.compile(username,recipeName,None)
+
+
+
 	def setMashTemp(self,username,recipeName, newMashTemp,doRecalculate="1"):
-		if 1==1:
-			# flag recipe rcalc at the recipe level
-			ourRecipe = self.dbWrapper.GqlQuery("SELECT * FROM gRecipes WHERE owner = :1 AND recipename = :2", username,recipeName)
-			for recipe in ourRecipe.fetch(500):
-				if not doRecalculate == "1":
-					recipe.calculationOutstanding=True
-				recipe.target_mash_temp=float(newMashTemp)
-				recipe.put()
-			if doRecalculate == "1":
-				self.calculateRecipe(username,recipeName)
-				self.compile(username,recipeName,None)
+		# flag recipe rcalc at the recipe level
+		ourRecipe = self.dbWrapper.GqlQuery("SELECT * FROM gRecipes WHERE owner = :1 AND recipename = :2", username,recipeName)
+		for recipe in ourRecipe.fetch(500):
+			if not doRecalculate == "1":
+				recipe.calculationOutstanding=True
+			recipe.target_mash_temp=float(newMashTemp)
+			recipe.put()
+		if doRecalculate == "1":
+			self.calculateRecipe(username,recipeName)
+			self.compile(username,recipeName,None)
 
 	def setMashEfficiency(self,username,recipeName, newMashEfficiency,doRecalculate="1"):
 		if 1==1:
@@ -232,6 +267,8 @@ class brewerslabCloudApi:
 			if doRecalculate == "1":
 				self.calculateRecipe(username,recipeName)
 				self.compile(username,recipeName,None)
+
+
 
 	def setBatchSize(self,username,recipeName, newBatchSize,doRecalculate="1"):
 		"""
@@ -1402,7 +1439,6 @@ issue is within ngData.py not within logic of cloudNG
 		status=0
 		try:
 
-			efficiency=int( re.compile("[^0-9]").sub('',efficiency))
 			sys.stderr.write("updated efficiency to %s\n" %(efficiency))
 			ourRecipe = self.dbWrapper.GqlQuery("SELECT * FROM gRecipes WHERE owner = :1 AND recipename = :2", username,recipeName)
 			for recipe in ourRecipe.fetch(500):
@@ -1863,8 +1899,11 @@ issue is within ngData.py not within logic of cloudNG
 			ourPurchases = self.dbWrapper.GqlQuery("SELECT * FROM gPurchases WHERE owner = :1", username)
 			results = ourPurchases.fetch(348400)
 			stocktag = len(results)
-
-			
+			ourBrewery = self.dbWrapper.GqlQuery("SELECT * FROM gBrewery WHERE owner = :1", username)
+			brewery=ourBrewery.fetch(1)[0]
+			brewery.cost=brewery.cost+float(cost)
+			brewery.put()
+					
 			ourIngredients = self.dbWrapper.GqlQuery("SELECT * FROM gItems WHERE owner = :1 AND majorcategory = :2 AND name = :3", username, category.lower(), itemtext )
 			unit=""
 			for ingredient in ourIngredients.fetch(1):
@@ -1876,6 +1915,18 @@ issue is within ngData.py not within logic of cloudNG
 				suppliers.append(supplier.supplierName)
 			suppliers.sort()
 			(Y,M,D,h,m,s,wd,yd,tm) = time.localtime()
+
+			#
+			# add a tweet-hint
+			if cost > 0 and not supplier == "recycledreused":
+				tweethint=gField(owner=username)
+				tweethint.fieldKey="tweetEnabled-stock"
+				if numpurchased > 1:
+					tweethint.fieldVal="Purchased %s*%s%s %s #%s #%s" %(numpurchased,qty,unit,itemtext,category,re.compile("[^a-zA-Z0-9]").sub('',suppliertext))
+				else:
+					tweethint.fieldVal="Purchased %s%s %s #%s #%s" %(qty,unit,itemtext,category,re.compile("[^a-zA-Z0-9]").sub('',suppliertext))
+				tweethint.put()
+
 
 			STOCKTAGS=""
 			for c in range(int(numpurchased)):
@@ -2025,6 +2076,7 @@ issue is within ngData.py not within logic of cloudNG
 		#gqlself.calclog = self.calclog + "process  : Calculating with Process %s\n" %(revcipe.process)
 		self.calclog = self.calclog + "process  : Calculating with Process %s\n" %(recipe.process)	#pickql	
 		self.calclog = self.calclog + "process  :  - TODO:: make sure hopAlpha comes from stock not preset\n"
+		self.calclog = self.calclog + "process  :  - Redefined hopAddAt 0.2=dryhop, 0.8=flamout, 0.6=whirlpool\n"
 		self.calclog = self.calclog + "process  : brewerslabEngine rev 0.2 (2015-10-18)\n"
 		self.calclog = self.calclog + "process  :  - new strike temp calculationg which uses grain weight/mash volume\n"
 		self.calclog = self.calclog + "process  :    which gives a strike temp 10deg lower\n"
@@ -3369,15 +3421,30 @@ issue is within ngData.py not within logic of cloudNG
 			result={}
 	
 			if category == "Hops" or category=="hops":		# this is set as hops in android client not Hops
-				if float(hopAddAt) == 0.009:
-					sys.stderr.write("hopAddAt Float wrokaround for flameout");
-					ourIngredients = self.dbWrapper.GqlQuery("SELECT * FROM gIngredients WHERE owner = :1 AND recipename = :2 AND ingredient = :3 AND hopAddAt > :4 AND hopAddAt < :5 AND ingredientType = :6 AND processIngredient = :7",username,recipeName,item,float(0.005),float(0.01),category.lower(),0)
-				elif float(hopAddAt) == 0.001:
+				#
+				# flameout/whirlpool
+				#
+				if float(hopAddAt) == 0.06:
+					sys.stderr.write("hopAddAt Float wrokaround for whirlpool/hopback");
+					ourIngredients = self.dbWrapper.GqlQuery("SELECT * FROM gIngredients WHERE owner = :1 AND recipename = :2 AND ingredient = :3 AND hopAddAt > :4 AND hopAddAt < :5 AND ingredientType = :6 AND processIngredient = :7",username,recipeName,item,float(0.05),float(0.07),category.lower(),0)
+				#
+				# Flameout
+				#
+				elif float(hopAddAt) == 0.08:
 					sys.stderr.write("hopAddAt float for flameout\n")
-					ourIngredients = self.dbWrapper.GqlQuery("SELECT * FROM gIngredients WHERE owner = :1 AND recipename = :2 AND ingredient = :3 AND hopAddAt > :4 AND hopAddAt < :5 AND ingredientType = :6 AND processIngredient = :7",username,recipeName,item,float(0.00),float(0.003),category.lower(),0)
+					ourIngredients = self.dbWrapper.GqlQuery("SELECT * FROM gIngredients WHERE owner = :1 AND recipename = :2 AND ingredient = :3 AND hopAddAt > :4 AND hopAddAt < :5 AND ingredientType = :6 AND processIngredient = :7",username,recipeName,item,float(0.07),float(0.09),category.lower(),0)
+				#
+				# first wort hops
+				#
 				elif float(hopAddAt) == 20.22:
 					sys.stderr.write("hopAddAt float for fwh\n")
 					ourIngredients = self.dbWrapper.GqlQuery("SELECT * FROM gIngredients WHERE owner = :1 AND recipename = :2 AND ingredient = :3 AND hopAddAt > :4 AND hopAddAt < :5 AND ingredientType = :6 AND processIngredient = :7",username,recipeName,item,float(20),float(21),category.lower(),0)
+				#
+				# dry hops
+				#
+				elif float(hopAddAt) == 0.02:
+					sys.stderr.write("hopAddAt float for dry hop\n")
+					ourIngredients = self.dbWrapper.GqlQuery("SELECT * FROM gIngredients WHERE owner = :1 AND recipename = :2 AND ingredient = :3 AND hopAddAt > :4 AND hopAddAt < :5 AND ingredientType = :6 AND processIngredient = :7",username,recipeName,item,float(0.01),float(0.03),category.lower(),0)
 				else:
 					ourIngredients = self.dbWrapper.GqlQuery("SELECT * FROM gIngredients WHERE owner = :1 AND recipename = :2 AND ingredient = :3 AND hopAddAt = :4 AND ingredientType = :5 AND processIngredient = :6",username,recipeName,item,float(hopAddAt),category.lower(),0)
 			else:
@@ -3634,14 +3701,21 @@ issue is within ngData.py not within logic of cloudNG
 			for ocs in ourCompiledSteps:	ocs.delete()
 
 
-		ourActivities = self.dbWrapper.GqlQuery("SELECT * FROM gProcess WHERE owner = :1 AND process = :2 AND stepNum = :3", username,self.Process.process,-1).fetch(324234)
+		ourActivities = self.dbWrapper.GqlQuery("SELECT * FROM gProcess WHERE owner = :1 AND process = :2 AND stepNum = :3 ORDER BY activityNum", username,self.Process.process,-1).fetch(324234)
 		for activity in ourActivities:
-			ourSteps = self.dbWrapper.GqlQuery("SELECT * FROM gProcess WHERE owner = :1 AND process = :2 AND activityNum = :3 AND subStepNum = :4",username,self.Process.process,activity.activityNum,-1).fetch(324234)
+			ourSteps = self.dbWrapper.GqlQuery("SELECT * FROM gProcess WHERE owner = :1 AND process = :2 AND activityNum = :3 AND subStepNum = :4 ORDER BY stepNum",username,self.Process.process,activity.activityNum,-1).fetch(324234)
 			for step in ourSteps:
-
-				hop_labels = {60:'Copper (60min)',15:'Aroma (15min)',5:'Finishing (5min)',0.001:'Flameout (0min)',0.0001:'Dryhop' ,'20.222':'First Wort Hop'}
+				sys.stderr.write("\nSTEP %s.%s %s (auto %s) \n"  %(step.activityNum,step.stepNum,step.stepName,step.auto))
+				hop_labels = {60:'Copper (60min)',
+					      15:'Aroma (15min)',
+                                              5:'Finishing (5min)',
+                                              0.08:'Flameout (0min)',
+					      0.06:'Whirlpool/Hopback (0min)',
+                                              0.02:'Dryhop' ,
+                                              '20.222':'First Wort Hop'}
 
 				if step.auto:
+					sys.stderr.write("STEP.AUTO  %s\n" %(step.auto))
 					if step.auto == "gatherthegrain":
 						sys.stderr.write("We don't need to do stock allocation here  addStockToBrewlog does this\n")
 						sys.stderr.write(" but we do need to add in substeps\n")
@@ -3720,7 +3794,7 @@ issue is within ngData.py not within logic of cloudNG
 
 						HOPS={}
 						for orh in ourRecipeHops:
-							if orh.hopAddAt >= 0.0005:			# don't include dry hop
+							if orh.hopAddAt >= 0.03:			# don't include dry hop
 								if not HOPS.has_key( orh.hopAddAt ):
 									HOPS[orh.hopAddAt]=[]
 									HOPS[orh.hopAddAt].append( orh )
@@ -3882,7 +3956,7 @@ issue is within ngData.py not within logic of cloudNG
 						for orh in ourRecipeHops:
 							if not HOPS.has_key( orh.hopAddAt ):
 #								sys.stderr.write("dryhop   :   %s/%s/%s \n" %(orh.ingredient,orh.qty,orh.hopAddAt))
-								if orh.hopAddAt < 0.001 and orh.hopAddAt > -1:
+								if orh.hopAddAt < 0.03 and orh.hopAddAt > -1:
 #									sys.stderr.write("dryhop:   this is dry hop %s\n" %(orh.qty))
 									HOPS[orh.hopAddAt]=[]
 									HOPS[orh.hopAddAt].append( orh )
@@ -3967,7 +4041,7 @@ issue is within ngData.py not within logic of cloudNG
 					elif step.auto == "hopaddFinishing_v3":
 						ssnumFIX=0	
 						hopaddsorted= []		
-						ourRecipeHops = self.dbWrapper.GqlQuery("SELECT * FROM gIngredients WHERE owner = :1 AND recipename = :2 AND ingredientType = :3 AND hopAddAt < :4 AND hopAddAt > :5", username,recipeName,"hops",1,0.0002).fetch(4344)
+						ourRecipeHops = self.dbWrapper.GqlQuery("SELECT * FROM gIngredients WHERE owner = :1 AND recipename = :2 AND ingredientType = :3 AND hopAddAt < :4 AND hopAddAt > :5", username,recipeName,"hops",0.09,0.07).fetch(4344)
 
 						HOPS={}
 						for orh in ourRecipeHops:
@@ -4000,6 +4074,51 @@ issue is within ngData.py not within logic of cloudNG
 								ssnumFIX=ssnumFIX+1
 
 						if not haveFlameout:
+							disableStep = self.dbWrapper.GqlQuery("SELECT * FROM gBrewlogStep WHERE owner = :1 AND brewlog = :2 AND activityNum = :3 AND stepNum = :4", username,brewlog,step.activityNum,step.stepNum).fetch(1)
+							if len(disableStep):
+								disableStep[0].activityNum=-9
+								disableStep[0].put()
+
+
+
+
+					elif step.auto == "hopaddWhirlpool_v3":
+						ssnumFIX=0	
+						hopaddsorted= []		
+						ourRecipeHops = self.dbWrapper.GqlQuery("SELECT * FROM gIngredients WHERE owner = :1 AND recipename = :2 AND ingredientType = :3 AND hopAddAt < :4 AND hopAddAt > :5", username,recipeName,"hops",0.07,0.04).fetch(4344)
+
+						HOPS={}
+						for orh in ourRecipeHops:
+							if not HOPS.has_key( orh.hopAddAt ):
+								if orh.hopAddAt < 1:
+									HOPS[orh.hopAddAt]=[]
+									HOPS[orh.hopAddAt].append( orh )
+									hopaddsorted.append( orh.hopAddAt )
+						hopaddsorted.sort()
+						hopaddsorted.reverse()
+
+						haveWhirlpool=False
+						for hopAddAt in hopaddsorted:
+							if hop_labels.has_key(hopAddAt):
+								additions=hop_labels[ hopAddAt ]
+							else:
+								additions='%s min' %(hopAddAt)
+
+							for hop in HOPS[ hopAddAt ]:
+								haveWhirlpool=True
+								percentage = 1
+								hopqty = hop.qty * percentage
+
+								estep = gBrewlogStep(brewlog=brewlog,owner=username,activityNum=activity.activityNum,stepNum=step.stepNum,subStepNum=ssnumFIX)		
+								estep.db=self.dbWrapper
+								estep.compileStep=True
+								estep.stepName="Add %.1f%s of %s for %s additions" %(hopqty,hop.unit,hop.ingredient,additions)
+								estep.needToComplete=True
+								estep.put()
+								ssnumFIX=ssnumFIX+1
+						sys.stderr.write("WHIRLPOOL hops\n\n%s" %(HOPS))
+
+						if not haveWhirlpool:
 							disableStep = self.dbWrapper.GqlQuery("SELECT * FROM gBrewlogStep WHERE owner = :1 AND brewlog = :2 AND activityNum = :3 AND stepNum = :4", username,brewlog,step.activityNum,step.stepNum).fetch(1)
 							if len(disableStep):
 								disableStep[0].activityNum=-9
@@ -6295,107 +6414,86 @@ a compiled recipe which is recompiled seems to cause problems
 
 
 
+	def cloneProcess(self,username,processOrigName,processNewName):
+		sys.stderr.write("\nSTART: cloneProcess %s/%s\n" %(processOrigName,processNewName))
+
+		status=0
+
+		try:
+			ourProcess = self.dbWrapper.GqlQuery("SELECT * FROM gProcess WHERE owner = :1 AND process = :2", username,processNewName)
+			for p  in ourProcess.fetch(8000):
+				p.delete()
+
+			ourFields= self.dbWrapper.GqlQuery("SELECT * FROM gField WHERE owner = :1 AND process = :2 AND brewlog = :3", username,processNewName,"")
+			for p  in ourFields.fetch(8000):
+				p.delete()
+
+			ourProcess = self.dbWrapper.GqlQuery("SELECT * FROM gProcess WHERE owner = :1 AND process = :2", username,processOrigName)
+			for process in ourProcess.fetch(8000):
+				P=gProcess(owner=username )
+				P.db=self.dbWrapper
+				for pi in process.__dict__:
+					if pi != "entity" and pi != "process":
+						P.__dict__[pi] = process.__dict__[pi]
+				P.process=processNewName
+				P.put()	
+
+			ourFields = self.dbWrapper.GqlQuery("SELECT * FROM gField WHERE owner = :1 AND process = :2 AND brewlog = :3", username,processOrigName,"")
+			for field in ourFields.fetch(8000):
+				F=gField(owner=username )
+				F.db=self.dbWrapper
+				for fi in field.__dict__:
+					if fi != "entity" and fi != "process":
+						F.__dict__[fi] = field.__dict__[fi]
+				F.process=processNewName
+				F.put()	
+
+			ourCompile = self.dbWrapper.GqlQuery("SELECT * FROM gCompileText WHERE owner = :1 AND process = :2",username,processOrigName)
+			for com in ourFields.fetch(8000):
+				C=gCompileText(owner=username )
+				C.db=self.dbWrapper
+				for ci in com.__dict__:
+					if ci != "entity" and ci != "process":
+						C.__dict__[ci] = com.__dict__[ci]
+				C.process=processNewName
+				C.put()	
+
+
+			ourWidgets = self.dbWrapper.GqlQuery("SELECT * FROM gWidgets WHERE owner = :1 AND process = :2",username,processOrigName)
+			for X in ourWidgets.fetch(8000):
+				W=gWidgets(owner=username )
+				W.db=self.dbWrapper
+				for x in X.__dict__:
+					if x != "entity" and x != "process":
+						W.__dict__[x] = X.__dict__[x]
+				W.process=processNewName
+				W.put()	
+
+
+			ourEquip = self.dbWrapper.GqlQuery("SELECT * FROM gEquipment WHERE owner = :1 AND process = :2",username,processOrigName)
+			for X in ourEquip.fetch(8000):
+				E=gEquipment(owner=username )
+				E.db=self.dbWrapper
+				for x in X.__dict__:
+					if x != "entity" and x != "process":
+						E.__dict__[x] = X.__dict__[x]
+				E.process=processNewName
+				E.put()	
+
+
+			P=gProcesses(owner=username)
+			P.process=processNewName
+			P.put()
+			status=1
+			sys.stderr.write("END: in cloneProcess\n")
+		except ImportError:
+			sys.stderr.write("EXCEPTION: in cloneProcess\n")
+			exc_type, exc_value, exc_traceback = sys.exc_info()
+			for e in traceback.format_tb(exc_traceback):	sys.stderr.write("\t%s" %( e))
+		
+		return {'operation' : 'cloneProcess', 'status' : status ,'json':{}}
 
 
 
-if __name__ == '__main__':
-	print "not supporting standalone mode here"
-	"""
-	c=brewerslabCloudApi()
-	c.standalonemode=True
-	c.standalonemode=True
-
-	hops=[]
-	cascadeB=gIngredients()
-	cascadeB.hopAddAt=60
-	cascadeB.hopAlpha=7
-	cascadeB.qty=50
-	cascadeB.unit="gm"
-	cascadeB.ingredient="cascade"
-	cascadeB.ingredientType="hop"
-	hops.append(cascadeB)
-	cascadeA=gIngredients()
-	cascadeA.hopAddAt=15
-	cascadeA.hopAlpha=7
-	cascadeA.qty=20
-	cascadeA.unit="gm"
-	cascadeA.ingredient="cascade"
-	cascadeA.ingredientType="hop"
-	hops.append(cascadeA)
-	cascadeF=gIngredients()
-	cascadeF.hopAddAt=0.001
-	cascadeF.hopAlpha=7
-	cascadeF.qty=30
-	cascadeF.unit="gm"
-	cascadeF.ingredient="cascade"
-	cascadeF.ingredientType="hop"
-	hops.append(cascadeF)
-	c.hops=hops
 
 
-	c.fermentables=[]
-	c.fermentables.append(gIngredients())
-	c.fermentables[-1].ingredient="Maris Otter"
-	c.fermentables[-1].qty=5000
-	c.fermentables[-1].hwe=315
-	c.fermentables[-1].color=5.73
-	c.fermentables[-1].isGrain=1
-	c.fermentables[-1].mustMash=1
-
-	c.fermentables.append(gIngredients())
-	c.fermentables[-1].ingredient="Torrified Wheat"
-	c.fermentables[-1].qty=150
-	c.fermentables[-1].hwe=299
-	c.fermentables[-1].color=0
-	c.fermentables[-1].isGrain=1
-	c.fermentables[-1].mustMash=1
-
-	c.fermentables.append(gIngredients())
-	c.fermentables[-1].ingredient="Honey"
-	c.fermentables[-1].qty=340
-	c.fermentables[-1].hwe=340
-	c.fermentables[-1].color=0
-	c.fermentables[-1].isGrain=0
-	c.fermentables[-1].isAdjunct=1
-	c.fermentables[-1].mustMash=1
-
-	c.yeasts=[]
-	c.yeasts.append(gIngredients())
-	c.yeasts[-1].atten=72
-
-	recipe=gRecipes()
-	recipe.recipename="Cascade Single Hop Pale Ale"
-	recipe.batch_size_required=22
-	recipe.process="17AG12i13"	
-	recipe.target_mash_temp=68
-	recipe.initial_grain_temp=18
-	recipe.mash_grain_ratio=1.5
-
-	c.recipe=recipe	
-
-	c.fermentation_bin = gEquipment()
-	c.fermentation_bin.dead_space=2
-	c.mash_tun=gEquipment()
-	c.mash_tun.dead_space=2.25
-	c.hlt=gEquipment()
-	c.hlt.dead_space=3
-	c.boilers=[]
-	c.boilers.append(gEquipment())
-	c.boilers[0].name="15l kettle"
-	c.boilers[0].dead_space=1.25
-	c.boilers[0].boilVolume=13
-	c.boilers.append(gEquipment())
-	c.boilers[1].name="20l kettle"
-	c.boilers[1].dead_space=1.25
-	c.boilers[1].boilVolume=16
-	c.Process=gProcess()
-	c.Process.percentage_boil_off=15
-	c.Process.percentage_cool_off=4
-	c.Process.name="17AG12i13"
-	c.recipe.mash_efficiency=67
-#	c.doCalculate("test@example.com","green")
-
-
-	c.doCalculate("standalone","recipe")
-	print c.calclog	
-	"""

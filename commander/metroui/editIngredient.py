@@ -19,12 +19,16 @@ if theme.localUser:
 
 	if form['action'].value == "changeBatchSize":
 		brewerslabCloudApi().setBatchSize("test@example.com", form['recipe'].value,float(form['batchsize'].value),doRecalculate="0")
-
-
+	if form['action'].value == "changeAlkalinity":
+		brewerslabCloudApi().setAlkalinity("test@example.com", form['recipe'].value,float(form['alkalinity'].value),doRecalculate="0")
+	if form['action'].value == "changeFermTemp":
+		brewerslabCloudApi().setFermTemp("test@example.com", form['recipe'].value,float(form['fermtemp'].value),float(form['fermlowtemp'].value),float(form['fermhightemp'].value),doRecalculate="0")
 	if form['action'].value == "changeMashTemp":
 		brewerslabCloudApi().setMashTemp("test@example.com", form['recipe'].value,float(form['mashtemp'].value),doRecalculate="0")
 	if form['action'].value == "changeMashEfficiency":
 		brewerslabCloudApi().setMashEfficiency("test@example.com", form['recipe'].value,float(form['mashefficiency'].value),doRecalculate="0")
+	if form['action'].value == "changeProcess":
+		brewerslabCloudApi().changeProcess("test@example.com", form['recipe'].value,form['process'].value)
 
 	if form['action'].value == "changestoreqty":
 		# a little step in the right direction, not using Gql Wrapper
