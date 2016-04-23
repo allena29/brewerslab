@@ -11,11 +11,18 @@ except:
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(23,0)
 
+if state == 3:
+
+	while 1:
+		GPIO.output(23,0)
+		time.sleep( 0.15)
+		GPIO.output(23,1)
+		time.sleep(9.85)
 if state == 2:
 
 	while 1:
 		time.sleep(0.125)
-		GPIO.output(23,state)
+		GPIO.output(23,1)
 		time.sleep(0.25)
 		GPIO.output(23,0)
 		time.sleep(0.125)

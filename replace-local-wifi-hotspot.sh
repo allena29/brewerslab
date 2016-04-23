@@ -31,7 +31,8 @@ ntpdate -s uk.pool.ntp.org
  
 
 kill `ps -ef | grep gpio23led | head -n 1 | sed -e 's/^\S* *//' | sed -e 's/ .*//'`
-python /home/beer/brewerslab/gpio23led.py
+python /home/beer/brewerslab/gpio23led.py 3
+
 else
 echo "GLOBAL Flag disappeared during sleep timer"
 fi
