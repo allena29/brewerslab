@@ -1,19 +1,14 @@
 
+# turn on red led
+kill `ps -ef | grep gpio23led | head -n 1 | sed -e 's/^\S* *//' | sed -e 's/ .*//'`
+python /home/beer/brewerslab/gpio23led.py 0
 echo "Killing dhc server/wpa supplicant"
 killall dhclient
 killall wpa_supplicant
+cp /home/beer/brewerslab/dhcpcd.conf-localwifi /etc/dhcpcd.conf
+/etc/init.d/dhcpcd restart
+ifconfig wlan0 172.12.12.122 netmask 255.255.255.128
 
-
-
-if [ -f try-own-wifi ]
-then
- echo "TODO: try own wifi credential "
-else
-
- if [ -f own-wifi-works ]
- then
-  echo "TODO: we are using our wifi - no need for hostapd"
- else
 
    echo "Making sure we don't use wpa supplicant"
    cp /home/beer/brewerslab/interfaces-localwifi /etc/network/interfaces
@@ -27,8 +22,7 @@ else
 
    dhcpd
 
- fi
-fi
 
 
+kill `ps -ef | grep gpio23led | head -n 1 | sed -e 's/^\S* *//' | sed -e 's/ .*//'`
 
