@@ -1,7 +1,7 @@
 
 # turn on red led
 kill `ps -ef | grep gpio23led | head -n 1 | sed -e 's/^\S* *//' | sed -e 's/ .*//'`
-python /home/beer/brewerslab/gpio23led.py 0
+python /home/beer/brewerslab/gpio23led.py 0 &
 echo "Killing dhc server/wpa supplicant"
 killall dhclient
 killall wpa_supplicant
