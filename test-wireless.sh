@@ -54,8 +54,19 @@ echo "Testing locally"
  ifconfig wlan0 >>/home/beer/last.wifi.test
  route -n >>/home/beer/last.wifi.test
 
-ping 8.8.8.8 -c 10 -w 20 >>/home/beer/last.wifi.test
+ping 8.8.8.8 -c 10 -w 30 >>/home/beer/last.wifi.test
 googleDnsStatus=$?
+
+if [ "$googleDnsStatus" == 0 ]
+then
+	echo "Google OK on first attempt"
+else
+	echo "Google Not OK on first attempt retrying after 10 seconds"
+	sleep 10
+	ping 8.8.8.8 -c 10 -w 30 >>/home/beer/last.wifi.test
+	googleDnsStatus=$?
+fi
+
 echo "$googleDnsStatus" >>/home/beer/last.wifi.test
 ps -ef >>/home/beer/last.wifi.test
 
