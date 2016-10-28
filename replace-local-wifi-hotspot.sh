@@ -1,23 +1,18 @@
 #!/bin/sh
 
+echo "Killing stuff"
+killall dhcpd
+killall hostapd
+killall wpa_supplicant
+killall dhclient
 
-if [ -f /home/beer/brewerslab/slave/localweb/wifistate/.__GLOBAL__ ]
-then
- echo "need to replace wifi local setup"
- sleep 360
-if [ -f /home/beer/brewerslab/slave/localweb/wifistate/.__GLOBAL__ ]
-then
- echo "Killing stuff"
- killall dhcpd
- killall hostapd
- killall wpa_supplicant
- killall dhclient
- cp /home/beer/brewerslab/dhcpcd.conf-preferred /etc/dhcpcd.conf
+echo "Going to use DCHCP for address"
+cp /home/beer/brewerslab/dhcpcd.conf-preferred /etc/dhcpcd.conf
 /etc/init.d/dhcpcd restart
 
- sleep 5
-ssid=`awk -F: '{print $1}' /home/beer/brewerslab/slave/localweb/wifistate/.__GLOBAL__`
-psk=`awk -F: '{print $2}' /home/beer/brewerslab/slave/localweb/wifistate/.__GLOBAL__`
+ssid=` head -n1 /boot/wifissid.txt  | sed -e's/[^A-Za-z0-9]//'`
+sudo python /home/beer/brewerslab/ledmatrix.py "wifi: $ssid"
+psk=` head -n1 /boot/wifipsk.txt  | sed -e's/[^A-Za-z0-9]//'`
 echo "Rewriting WPA SUpplicant"
 sed -e "s/<SSID>/$ssid/"  /home/beer/brewerslab/wpa_supplicant.conf  | sed -e "s/<PSK>/$psk/" >/etc/wpa_supplicant/wpa_supplicant.conf
 
@@ -26,14 +21,13 @@ wpa_supplicant -B -D wext -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf
 sleep 10
 iwconfig wlan0 >/home/beer/last.wifi
 ifconfig >>/home/beer/last.wifi
+sleep 5
 
 ntpdate -s uk.pool.ntp.org
  
 
-kill `ps -ef | grep gpio23led | head -n 1 | sed -e 's/^\S* *//' | sed -e 's/ .*//'`
-python /home/beer/brewerslab/gpio23led.py 3 &
+echo "nameserver 8.8.8.8" >>/etc/resolv.conf
+sleep 10
+ip=`ifconfig wlan0 | grep Bcast | sed -e 's/.*ddr://' | sed -e 's/ .*//'`
+sudo python /home/beer/brewerslab/ledmatrix.py "ready.. http://$ip:54661/cgi/index.py"
 
-else
-echo "GLOBAL Flag disappeared during sleep timer"
-fi
-fi

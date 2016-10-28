@@ -1,7 +1,9 @@
+touch /boot/wifiresetflag
 
-# turn on red led
-kill `ps -ef | grep gpio23led | head -n 1 | sed -e 's/^\S* *//' | sed -e 's/ .*//'`
-python /home/beer/brewerslab/gpio23led.py 0 &
+
+sudo python /home/beer/brewerslab/ledmatrix.py "WIFI: aaaBREWERSLAB"
+
+touch /tmp/local-wifi-active
 echo "Killing dhc server/wpa supplicant"
 killall dhclient
 killall wpa_supplicant
@@ -22,7 +24,4 @@ ifconfig wlan0 172.12.12.122 netmask 255.255.255.128
 
    dhcpd
 
-
-
-kill `ps -ef | grep gpio23led | head -n 1 | sed -e 's/^\S* *//' | sed -e 's/ .*//'`
 
