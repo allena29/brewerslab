@@ -12,36 +12,17 @@ import syslog
 import sys
 import threading
 import time
-
+from datetime import datetime
+from elasticsearch import Elasticsearch
 
 """
-With a simple ELK stack running we can use Kibana to draw basic graphs
-The RRD tool graphs have a tenedency to fail to generate - and are not
-pretty by today standard.
+Elastic search running on a dedicated raspberry pi 
+    ES_JAVA_OPTS="-Xms512m -Xmx5120m" bin/elasticsearch
 
-Getting ELK running on Raspberry Pi isn't so trivial because of CPU 
-architecture, so this instead sends the results to logstash running on
-another machine.
+https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.4.1.tar.gz
 
-The logstash conf is very trivial.
-
-input{
-  tcp {
-      port => 5959
-          codec => json
-      }
-}
-
-
-
-
-output {
-  stdout {
-    codec => rubydebug
-  }
-  elasticsearch {
-  }
-}
+pip install elasticsea:q
+ch
 """
 
 from pitmCfg import pitmCfg
@@ -55,36 +36,25 @@ class pitmELKMonitor:
 		self.logging=2		# 1 = syslog, 2 = stderr
 		self.cfg = pitmCfg()
 
-		self.tcpsock = None
+		self.elasticsock = None
 		
 		self.msg_dict = {
-			'@metadata' : {
-				'beat' : 'pitm-elk-monitor',
-				'type' : 'python'
-			}
+                        'author' : 'dr-rudi.mellon-collie.net',
 		}
 
 	
-	def __del__(self):
-		if self.tcpsock:
-			self.tcpsock.close()
-
-
 
 	def _open_socket_if_it_is_closed(self):
-		if self.tcpsock:
+		if self.elasticsock:
 			return True
 
 		try:
-
-			self.tcpsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			self.tcpsock.connect(self.SERVER_ADDRESS)
-			print 'socket opened to ', self.SERVER_ADDRESS
+                        self.elasticsock = Elasticsearch()
 
 		except:
-			self.tcpsock = None
+			self.elasticsock = None
 		
-		return self.tcpsock
+		return self.elasticsock
 
 
 	def decodeTempMessage(self,data,zone="Unknown"):
@@ -128,23 +98,33 @@ class pitmELKMonitor:
 			for probe in cm['currentResult']:
 				if cm['currentResult'][probe]['valid']:
 					print probe,cm['currentResult'][probe]['temperature']
+                                        print cm
 					now = time.localtime()
 
 					probeId = self.cfg.probeId[probe]
 
 					self.msg_dict[probeId] = float(cm['currentResult'][probe]['temperature'])
-					self.msg_dict["@timestamp"] = time.strftime("%Y-%m-%dT%H:%M:%S", now)				
-
-					self._open_socket_if_it_is_closed()
+					self.msg_dict["timestamp"] = datetime.now()
 
 
+                                    
+                                        target= cm['tempTarget%s%s' % (probeId[0].upper(), probeId[1:])]                    
+		    			self._open_socket_if_it_is_closed()
+                                        self.msg_dict['%s_low' %(probeId)] = float(target[0])
+                                        self.msg_dict['%s_high' %(probeId)] = float(target[1])
+                                        self.msg_dict['%s_target' %(probeId)] = float(target[2])
+                                        
+                                        ### TODO have to clear out mdg_dict each time we change mode.
+
+        
+                                        self.msg_dict["recipe"] = cm['_recipe']
 					try:
-						msg = json.dumps(self.msg_dict) + '\n'
-						self.tcpsock.sendall(msg)
-						print "sent"+ msg
+                                                res = self.elasticsock.index(index="pitmtemp", doc_type='mcast-temp', id=int(time.time()*10), body=self.msg_dict)
+						print "sent", res
+
 					except:
 						print "Unable to send on socket"
-						self.tcpsock = None
+						self.elasticsock = None
 	
 	def updateStatsZoneA(self):
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
