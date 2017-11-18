@@ -1,0 +1,6 @@
+google-font-download/
+master/simulator
+*.swp
+*.pyc
+*/ipc
+slave/localweb/fonts/
