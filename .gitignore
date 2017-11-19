@@ -4,3 +4,6 @@ master/simulator
 *.pyc
 */ipc
 slave/localweb/fonts/
+htmlcov
+.coverage
+simulator
