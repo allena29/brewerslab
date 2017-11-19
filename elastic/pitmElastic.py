@@ -21,35 +21,37 @@ Elastic search running on a dedicated raspberry pi
 
 https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.4.1.tar.gz
 
-pip install elasticsea:q
-ch
+pip install elasticsearch
+
+
+It seems that elasticsearch uses the bind address to determine development vs
+production.
+
+The following was needed in the config...
+ bootstrap.system_call_filter: false
 """
 
 from pitmCfg import pitmCfg
 
-class pitmELKMonitor:
+class pitmElasticMonitor:
 
 
-	SERVER_ADDRESS = ('192.168.3.1', 5959)
+        SERVER_NAME = 'dr-rudi.mellon-collie.net'
+
 
 	def __init__(self):
 		self.logging=2		# 1 = syslog, 2 = stderr
 		self.cfg = pitmCfg()
 
 		self.elasticsock = None
-		
-		self.msg_dict = {
-                        'author' : 'dr-rudi.mellon-collie.net',
-		}
-
-	
+                self.lastmode = ""
 
 	def _open_socket_if_it_is_closed(self):
 		if self.elasticsock:
 			return True
 
 		try:
-                        self.elasticsock = Elasticsearch()
+                        self.elasticsock = Elasticsearch(['192.168.1.182'])
 
 		except:
 			self.elasticsock = None
@@ -94,11 +96,16 @@ class pitmELKMonitor:
 			if cm['_mode'].count("ferm"):
 				self.doMonitoring=True
 
+                        if not cm['_mode']  == self.lastmode:
+                            self.msg_dict = {
+                                    'host' : self.SERVER_NAME
+                            }
+                            self.lastmode = cm['_mode']
+
 		if self.doMonitoring:
 			for probe in cm['currentResult']:
 				if cm['currentResult'][probe]['valid']:
 					print probe,cm['currentResult'][probe]['temperature']
-                                        print cm
 					now = time.localtime()
 
 					probeId = self.cfg.probeId[probe]
@@ -114,7 +121,6 @@ class pitmELKMonitor:
                                         self.msg_dict['%s_high' %(probeId)] = float(target[1])
                                         self.msg_dict['%s_target' %(probeId)] = float(target[2])
                                         
-                                        ### TODO have to clear out mdg_dict each time we change mode.
 
         
                                         self.msg_dict["recipe"] = cm['_recipe']
@@ -122,8 +128,8 @@ class pitmELKMonitor:
                                                 res = self.elasticsock.index(index="pitmtemp", doc_type='mcast-temp', id=int(time.time()*10), body=self.msg_dict)
 						print "sent", res
 
-					except:
-						print "Unable to send on socket"
+                                        except:
+						print "Unable to send on socket... will try again next time"
 						self.elasticsock = None
 	
 	def updateStatsZoneA(self):
@@ -138,19 +144,19 @@ class pitmELKMonitor:
 		while True:
 			(data, addr) = self.sock.recvfrom(1200)
 			self.decodeTempMessage(data,zone="A")	
-			time.sleep(2)		
+			time.sleep(0.2)		
 
 
 if __name__ == '__main__':
 	try:
-		controller = pitmELKMonitor()
+		controller = pitmElasticMonitor()
 
 		updateStatsThread = threading.Thread(target=controller.updateStatsZoneA)
 		updateStatsThread.daemon = True
 		updateStatsThread.start()
 	
 		while 1:
-			time.sleep(1)	
+			time.sleep(10)	
 
 	except KeyboardInterrupt:
 		controller.uncontrol()
