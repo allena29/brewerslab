@@ -12,79 +12,57 @@ import syslog
 import sys
 import threading
 import time
-
+from datetime import datetime
+from elasticsearch import Elasticsearch
 
 """
-With a simple ELK stack running we can use Kibana to draw basic graphs
-The RRD tool graphs have a tenedency to fail to generate - and are not
-pretty by today standard.
+Elastic search running on a dedicated raspberry pi 
+    ES_JAVA_OPTS="-Xms512m -Xmx5120m" bin/elasticsearch
 
-Getting ELK running on Raspberry Pi isn't so trivial because of CPU 
-architecture, so this instead sends the results to logstash running on
-another machine.
+https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.0.0.tar.gz
 
-The logstash conf is very trivial.
-
-input{
-  tcp {
-      port => 5959
-          codec => json
-      }
-}
+pip install elasticsearch
 
 
+It seems that elasticsearch uses the bind address to determine development vs
+production.
+
+The following was needed in the config...
+ bootstrap.system_call_filter: false
 
 
-output {
-  stdout {
-    codec => rubydebug
-  }
-  elasticsearch {
-  }
-}
+Kibana configuration is updated to not use http://localhost:9200 as the
+elasticsearch url.
+
+
 """
 
 from pitmCfg import pitmCfg
 
-class pitmELKMonitor:
+class pitmElasticMonitor:
 
 
-	SERVER_ADDRESS = ('192.168.3.1', 5959)
+        SERVER_NAME = 'dr-rudi.mellon-collie.net'
+
 
 	def __init__(self):
 		self.logging=2		# 1 = syslog, 2 = stderr
 		self.cfg = pitmCfg()
 
-		self.tcpsock = None
-		
-		self.msg_dict = {
-			'@metadata' : {
-				'beat' : 'pitm-elk-monitor',
-				'type' : 'python'
-			}
-		}
-
-	
-	def __del__(self):
-		if self.tcpsock:
-			self.tcpsock.close()
-
-
+		self.elasticsock = None
+                self.lastmode = ""
 
 	def _open_socket_if_it_is_closed(self):
-		if self.tcpsock:
+		if self.elasticsock:
 			return True
 
 		try:
-
-			self.tcpsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			self.tcpsock.connect(self.SERVER_ADDRESS)
-			print 'socket opened to ', self.SERVER_ADDRESS
+                        self.elasticsock = Elasticsearch(['192.168.1.182'])
 
 		except:
-			self.tcpsock = None
+			self.elasticsock = None
 		
-		return self.tcpsock
+		return self.elasticsock
 
 
 	def decodeTempMessage(self,data,zone="Unknown"):
@@ -124,6 +102,12 @@ class pitmELKMonitor:
 			if cm['_mode'].count("ferm"):
 				self.doMonitoring=True
 
+                        if not cm['_mode']  == self.lastmode:
+                            self.msg_dict = {
+                                    'host' : self.SERVER_NAME
+                            }
+                            self.lastmode = cm['_mode']
+
 		if self.doMonitoring:
 			for probe in cm['currentResult']:
 				if cm['currentResult'][probe]['valid']:
@@ -133,18 +117,26 @@ class pitmELKMonitor:
 					probeId = self.cfg.probeId[probe]
 
 					self.msg_dict[probeId] = float(cm['currentResult'][probe]['temperature'])
-					self.msg_dict["@timestamp"] = time.strftime("%Y-%m-%dT%H:%M:%S", now)				
-
-					self._open_socket_if_it_is_closed()
+					self.msg_dict["timestamp"] = datetime.now()
 
 
+                                    
+                                        target= cm['tempTarget%s%s' % (probeId[0].upper(), probeId[1:])]                    
+		    			self._open_socket_if_it_is_closed()
+                                        self.msg_dict['%s_low' %(probeId)] = float(target[0])
+                                        self.msg_dict['%s_high' %(probeId)] = float(target[1])
+                                        self.msg_dict['%s_target' %(probeId)] = float(target[2])
+                                        
+
+        
+                                        self.msg_dict["recipe"] = cm['_recipe']
 					try:
-						msg = json.dumps(self.msg_dict) + '\n'
-						self.tcpsock.sendall(msg)
-						print "sent"+ msg
-					except:
-						print "Unable to send on socket"
-						self.tcpsock = None
+                                                res = self.elasticsock.index(index="pitmtemp", doc_type='mcast-temp', id=int(time.time()*10), body=self.msg_dict)
+						print "sent", res
+
+                                        except:
+						print "Unable to send on socket... will try again next time"
+						self.elasticsock = None
 	
 	def updateStatsZoneA(self):
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -158,19 +150,19 @@ class pitmELKMonitor:
 		while True:
 			(data, addr) = self.sock.recvfrom(1200)
 			self.decodeTempMessage(data,zone="A")	
-			time.sleep(2)		
+			time.sleep(0.2)		
 
 
 if __name__ == '__main__':
 	try:
-		controller = pitmELKMonitor()
+		controller = pitmElasticMonitor()
 
 		updateStatsThread = threading.Thread(target=controller.updateStatsZoneA)
 		updateStatsThread.daemon = True
 		updateStatsThread.start()
 	
 		while 1:
-			time.sleep(1)	
+			time.sleep(10)	
 
 	except KeyboardInterrupt:
 		controller.uncontrol()
