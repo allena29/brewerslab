@@ -94,20 +94,6 @@ see i2ctools.py for exact documentation on pin mappins
   
 
 
-  TEMP BOARD A:
- |---------------------|-|-|-|-|-|-|-|-|-|-----------------------|
- |                   VCC 8 7 6 5 4 3 2 1 GND                     |
- |                                                               |
- |   8       7       6       5       4       3       2       1   |
- | N   N | N   N | N   N | N   N | N   N | N   N | N   N | N   N | 
- | O C C | O C C | O C C | O C C | O C C | O C C | O C C | O C C |
- |-|-|---|-|-|---|-|-|---|-|-|---|-|-|---|-|-|---|-|-|---|-|-|---|
-
-	- used to only connect the data + power legs of the temp
-	  probe on demnand. The resistor is put in place here too
-	- 4 temp sockets used
-
-
 
 
 raspberry pi wiring diagram (version 2 - master)
@@ -281,11 +267,11 @@ XLR Connectors for temperature
 POWER SHELF
 |-----------------------------------------------------------------------------|
 |                                                                             |
-|        [ hlt       ]   [ mash      ] | [ boil      ]   [ ferm      ]        |
+|        [ hlt       ]   [ mash      ] | [ boil      ]   [ ferm      ]        |  <-- temp prboes
 |                                                                             |
-|        [  heat     ]   [  fridge   ] | [ pump      ]   [ extractor ]        |
+|        [  heat     ]   [  fridge   ] | [ recircfan ]   [           ]        |  <-- power-out
 |                                      |                                      |
-| [ B ]  [   HLT B   ]   [  BOIL B   ] | [  BOIL A   ]   [  HLT  A   ]  [ A   |
+| [ B ]  [   HLT B   ]   [  BOIL B   ] | [  BOIL A   ]   [  HLT  A   ]  [ A ] |  <-- power in and power out
 |                                                                             |
 |-----------------------------------------------------------------------------|  
 B = 13A input - used for post-brewday fermentation control
