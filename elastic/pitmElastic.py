@@ -19,7 +19,7 @@ from elasticsearch import Elasticsearch
 Elastic search running on a dedicated raspberry pi 
     ES_JAVA_OPTS="-Xms512m -Xmx5120m" bin/elasticsearch
 
-https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.4.1.tar.gz
+https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.0.0.tar.gz
 
 pip install elasticsearch
 
@@ -29,6 +29,12 @@ production.
 
 The following was needed in the config...
  bootstrap.system_call_filter: false
+
+
+Kibana configuration is updated to not use http://localhost:9200 as the
+elasticsearch url.
+
+
 """
 
 from pitmCfg import pitmCfg
