@@ -1,0 +1,107 @@
+[
+  {
+    "_id": "1f11e6e0-ccc5-11e7-9a64-65b3e95ca5df",
+    "_type": "dashboard",
+    "_source": {
+      "title": "Ferm Dashboard",
+      "hits": 0,
+      "description": "",
+      "panelsJSON": "[{\"col\":1,\"id\":\"57185c00-ccc4-11e7-9a64-65b3e95ca5df\",\"panelIndex\":1,\"row\":1,\"size_x\":12,\"size_y\":5,\"type\":\"visualization\"},{\"col\":7,\"id\":\"48ec6370-ccc3-11e7-9a64-65b3e95ca5df\",\"panelIndex\":2,\"row\":6,\"size_x\":3,\"size_y\":3,\"type\":\"visualization\"},{\"col\":1,\"id\":\"6f6d90f0-ccc3-11e7-9a64-65b3e95ca5df\",\"panelIndex\":3,\"row\":6,\"size_x\":3,\"size_y\":3,\"type\":\"visualization\"},{\"col\":10,\"id\":\"1fb14610-ccc3-11e7-9a64-65b3e95ca5df\",\"panelIndex\":4,\"row\":6,\"size_x\":3,\"size_y\":3,\"type\":\"visualization\"},{\"col\":4,\"id\":\"3529a460-ccc3-11e7-9a64-65b3e95ca5df\",\"panelIndex\":5,\"row\":6,\"size_x\":3,\"size_y\":3,\"type\":\"visualization\"}]",
+      "optionsJSON": "{\"darkTheme\":false}",
+      "uiStateJSON": "{\"P-2\":{\"vis\":{\"defaultColors\":{\"0 - 18\":\"rgb(0,104,55)\",\"18 - 21\":\"rgb(255,255,190)\",\"21 - 25\":\"rgb(165,0,38)\"}}},\"P-3\":{\"vis\":{\"defaultColors\":{\"0 - 18\":\"rgb(0,104,55)\",\"18 - 21\":\"rgb(255,255,190)\",\"21 - 25\":\"rgb(165,0,38)\"}}},\"P-4\":{\"vis\":{\"defaultColors\":{\"0 - 18\":\"rgb(0,104,55)\",\"18 - 21\":\"rgb(255,255,190)\",\"21 - 25\":\"rgb(165,0,38)\"}}},\"P-5\":{\"vis\":{\"defaultColors\":{\"0 - 18\":\"rgb(0,104,55)\",\"18 - 21\":\"rgb(255,255,190)\",\"21 - 25\":\"rgb(165,0,38)\"}}}}",
+      "version": 1,
+      "timeRestore": false,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"query\":{\"language\":\"lucene\",\"query\":\"\"},\"filter\":[],\"highlightAll\":true,\"version\":true}"
+      }
+    },
+    "_meta": {
+      "savedObjectVersion": 2
+    }
+  },
+  {
+    "_id": "1fb14610-ccc3-11e7-9a64-65b3e95ca5df",
+    "_type": "visualization",
+    "_source": {
+      "title": "Max Fermentation Temperature",
+      "visState": "{\"title\":\"Max Fermentation Temperature\",\"type\":\"gauge\",\"params\":{\"type\":\"gauge\",\"addTooltip\":true,\"addLegend\":true,\"gauge\":{\"verticalSplit\":false,\"extendRange\":true,\"percentageMode\":false,\"gaugeType\":\"Arc\",\"gaugeStyle\":\"Full\",\"backStyle\":\"Full\",\"orientation\":\"vertical\",\"colorSchema\":\"Green to Red\",\"gaugeColorMode\":\"Labels\",\"colorsRange\":[{\"from\":0,\"to\":18},{\"from\":18,\"to\":21},{\"from\":21,\"to\":25}],\"invertColors\":false,\"labels\":{\"show\":true,\"color\":\"black\"},\"scale\":{\"show\":true,\"labels\":false,\"color\":\"#333\"},\"type\":\"meter\",\"style\":{\"bgWidth\":0.9,\"width\":0.9,\"mask\":false,\"bgMask\":false,\"maskBars\":50,\"bgFill\":\"#eee\",\"bgColor\":false,\"subText\":\"\",\"fontSize\":60,\"labelColor\":true}}},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"ferm\",\"customLabel\":\"Maximum\"}}]}",
+      "uiStateJSON": "{\"vis\":{\"defaultColors\":{\"0 - 18\":\"rgb(0,104,55)\",\"18 - 21\":\"rgb(255,255,190)\",\"21 - 25\":\"rgb(165,0,38)\"},\"colors\":{\"75 - 100\":\"#E24D42\",\"21 - 99999\":\"#BF1B00\",\"18 - 21\":\"#508642\",\"0 - 18\":\"#447EBC\"},\"legendOpen\":false}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"c3bc78c0-ccc2-11e7-9a64-65b3e95ca5df\",\"filter\":[],\"query\":{\"query\":\"\",\"language\":\"lucene\"}}"
+      }
+    },
+    "_meta": {
+      "savedObjectVersion": 2
+    }
+  },
+  {
+    "_id": "3529a460-ccc3-11e7-9a64-65b3e95ca5df",
+    "_type": "visualization",
+    "_source": {
+      "title": "Min Fermentation Temperature",
+      "visState": "{\"title\":\"Min Fermentation Temperature\",\"type\":\"gauge\",\"params\":{\"type\":\"gauge\",\"addTooltip\":true,\"addLegend\":true,\"gauge\":{\"verticalSplit\":false,\"extendRange\":true,\"percentageMode\":false,\"gaugeType\":\"Arc\",\"gaugeStyle\":\"Full\",\"backStyle\":\"Full\",\"orientation\":\"vertical\",\"colorSchema\":\"Green to Red\",\"gaugeColorMode\":\"Labels\",\"colorsRange\":[{\"from\":0,\"to\":18},{\"from\":18,\"to\":21},{\"from\":21,\"to\":25}],\"invertColors\":false,\"labels\":{\"show\":true,\"color\":\"black\"},\"scale\":{\"show\":true,\"labels\":false,\"color\":\"#333\"},\"type\":\"meter\",\"style\":{\"bgWidth\":0.9,\"width\":0.9,\"mask\":false,\"bgMask\":false,\"maskBars\":50,\"bgFill\":\"#eee\",\"bgColor\":false,\"subText\":\"\",\"fontSize\":60,\"labelColor\":true}}},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"min\",\"schema\":\"metric\",\"params\":{\"field\":\"ferm\",\"customLabel\":\"Minimum\"}}]}",
+      "uiStateJSON": "{\"vis\":{\"defaultColors\":{\"0 - 18\":\"rgb(0,104,55)\",\"18 - 21\":\"rgb(255,255,190)\",\"21 - 25\":\"rgb(165,0,38)\"},\"colors\":{\"75 - 100\":\"#E24D42\",\"21 - 99999\":\"#BF1B00\",\"18 - 21\":\"#508642\",\"0 - 18\":\"#447EBC\"},\"legendOpen\":false}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"c3bc78c0-ccc2-11e7-9a64-65b3e95ca5df\",\"filter\":[],\"query\":{\"query\":\"\",\"language\":\"lucene\"}}"
+      }
+    },
+    "_meta": {
+      "savedObjectVersion": 2
+    }
+  },
+  {
+    "_id": "6f6d90f0-ccc3-11e7-9a64-65b3e95ca5df",
+    "_type": "visualization",
+    "_source": {
+      "title": "Current Fermentation Temperature",
+      "visState": "{\"title\":\"Current Fermentation Temperature\",\"type\":\"gauge\",\"params\":{\"type\":\"gauge\",\"addTooltip\":true,\"addLegend\":true,\"gauge\":{\"verticalSplit\":false,\"extendRange\":true,\"percentageMode\":false,\"gaugeType\":\"Arc\",\"gaugeStyle\":\"Full\",\"backStyle\":\"Full\",\"orientation\":\"vertical\",\"colorSchema\":\"Green to Red\",\"gaugeColorMode\":\"Labels\",\"colorsRange\":[{\"from\":0,\"to\":18},{\"from\":18,\"to\":21},{\"from\":21,\"to\":25}],\"invertColors\":false,\"labels\":{\"show\":true,\"color\":\"black\"},\"scale\":{\"show\":true,\"labels\":false,\"color\":\"#333\"},\"type\":\"meter\",\"style\":{\"bgWidth\":0.9,\"width\":0.9,\"mask\":false,\"bgMask\":false,\"maskBars\":50,\"bgFill\":\"#eee\",\"bgColor\":false,\"subText\":\"\",\"fontSize\":60,\"labelColor\":true}}},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"top_hits\",\"schema\":\"metric\",\"params\":{\"field\":\"ferm\",\"aggregate\":\"average\",\"size\":1,\"sortField\":\"timestamp\",\"sortOrder\":\"desc\",\"customLabel\":\"Current\"}}]}",
+      "uiStateJSON": "{\"vis\":{\"defaultColors\":{\"0 - 18\":\"rgb(0,104,55)\",\"18 - 21\":\"rgb(255,255,190)\",\"21 - 25\":\"rgb(165,0,38)\"},\"colors\":{\"75 - 100\":\"#E24D42\",\"21 - 99999\":\"#BF1B00\",\"18 - 21\":\"#508642\",\"0 - 18\":\"#447EBC\"},\"legendOpen\":false}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"c3bc78c0-ccc2-11e7-9a64-65b3e95ca5df\",\"filter\":[],\"query\":{\"query\":\"\",\"language\":\"lucene\"}}"
+      }
+    },
+    "_meta": {
+      "savedObjectVersion": 2
+    }
+  },
+  {
+    "_id": "48ec6370-ccc3-11e7-9a64-65b3e95ca5df",
+    "_type": "visualization",
+    "_source": {
+      "title": "Avg Fermentation Temperature",
+      "visState": "{\"title\":\"Avg Fermentation Temperature\",\"type\":\"gauge\",\"params\":{\"type\":\"gauge\",\"addTooltip\":true,\"addLegend\":true,\"gauge\":{\"verticalSplit\":false,\"extendRange\":true,\"percentageMode\":false,\"gaugeType\":\"Arc\",\"gaugeStyle\":\"Full\",\"backStyle\":\"Full\",\"orientation\":\"vertical\",\"colorSchema\":\"Green to Red\",\"gaugeColorMode\":\"Labels\",\"colorsRange\":[{\"from\":0,\"to\":18},{\"from\":18,\"to\":21},{\"from\":21,\"to\":25}],\"invertColors\":false,\"labels\":{\"show\":true,\"color\":\"black\"},\"scale\":{\"show\":true,\"labels\":false,\"color\":\"#333\"},\"type\":\"meter\",\"style\":{\"bgWidth\":0.9,\"width\":0.9,\"mask\":false,\"bgMask\":false,\"maskBars\":50,\"bgFill\":\"#eee\",\"bgColor\":false,\"subText\":\"\",\"fontSize\":60,\"labelColor\":true}}},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"ferm\",\"customLabel\":\"Average\"}}]}",
+      "uiStateJSON": "{\"vis\":{\"defaultColors\":{\"0 - 18\":\"rgb(0,104,55)\",\"18 - 21\":\"rgb(255,255,190)\",\"21 - 25\":\"rgb(165,0,38)\"},\"colors\":{\"75 - 100\":\"#E24D42\",\"21 - 99999\":\"#BF1B00\",\"18 - 21\":\"#508642\",\"0 - 18\":\"#447EBC\"},\"legendOpen\":false}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"c3bc78c0-ccc2-11e7-9a64-65b3e95ca5df\",\"filter\":[],\"query\":{\"query\":\"\",\"language\":\"lucene\"}}"
+      }
+    },
+    "_meta": {
+      "savedObjectVersion": 2
+    }
+  },
+  {
+    "_id": "57185c00-ccc4-11e7-9a64-65b3e95ca5df",
+    "_type": "visualization",
+    "_source": {
+      "title": "Graph",
+      "visState": "{\"title\":\"Graph\",\"type\":\"line\",\"params\":{\"type\":\"line\",\"grid\":{\"categoryLines\":false,\"style\":{\"color\":\"#eee\"}},\"categoryAxes\":[{\"id\":\"CategoryAxis-1\",\"type\":\"category\",\"position\":\"bottom\",\"show\":true,\"style\":{},\"scale\":{\"type\":\"linear\"},\"labels\":{\"show\":true,\"truncate\":100},\"title\":{}}],\"valueAxes\":[{\"id\":\"ValueAxis-1\",\"name\":\"LeftAxis-1\",\"type\":\"value\",\"position\":\"left\",\"show\":true,\"style\":{},\"scale\":{\"type\":\"linear\",\"mode\":\"normal\",\"defaultYExtents\":true},\"labels\":{\"show\":true,\"rotate\":0,\"filter\":false,\"truncate\":100},\"title\":{\"text\":\"Fermentation Temperature (degC)\"}}],\"seriesParams\":[{\"show\":\"true\",\"type\":\"line\",\"mode\":\"normal\",\"data\":{\"label\":\"Upper Bound\",\"id\":\"1\"},\"valueAxis\":\"ValueAxis-1\",\"drawLinesBetweenPoints\":true,\"showCircles\":true},{\"show\":true,\"mode\":\"normal\",\"type\":\"line\",\"drawLinesBetweenPoints\":true,\"showCircles\":true,\"data\":{\"id\":\"3\",\"label\":\"Lower Bound\"},\"valueAxis\":\"ValueAxis-1\"},{\"show\":true,\"mode\":\"normal\",\"type\":\"line\",\"drawLinesBetweenPoints\":true,\"showCircles\":true,\"data\":{\"id\":\"5\",\"label\":\"Lowest Sample\"},\"valueAxis\":\"ValueAxis-1\"},{\"show\":true,\"mode\":\"normal\",\"type\":\"line\",\"drawLinesBetweenPoints\":true,\"showCircles\":true,\"data\":{\"id\":\"6\",\"label\":\"Highest Sample\"},\"valueAxis\":\"ValueAxis-1\"},{\"show\":true,\"mode\":\"normal\",\"type\":\"line\",\"drawLinesBetweenPoints\":true,\"showCircles\":true,\"data\":{\"id\":\"4\",\"label\":\"Average Sample\"},\"valueAxis\":\"ValueAxis-1\"}],\"addTooltip\":true,\"addLegend\":true,\"legendPosition\":\"right\",\"times\":[],\"addTimeMarker\":false},\"aggs\":[{\"id\":\"2\",\"enabled\":true,\"type\":\"date_histogram\",\"schema\":\"segment\",\"params\":{\"field\":\"timestamp\",\"interval\":\"s\",\"customInterval\":\"2h\",\"min_doc_count\":1,\"extended_bounds\":{}}},{\"id\":\"1\",\"enabled\":true,\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"ferm_high\",\"customLabel\":\"Upper Bound\"}},{\"id\":\"3\",\"enabled\":true,\"type\":\"min\",\"schema\":\"metric\",\"params\":{\"field\":\"ferm_low\",\"customLabel\":\"Lower Bound\"}},{\"id\":\"5\",\"enabled\":true,\"type\":\"min\",\"schema\":\"metric\",\"params\":{\"field\":\"ferm\",\"customLabel\":\"Lowest Sample\"}},{\"id\":\"6\",\"enabled\":true,\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"ferm\",\"customLabel\":\"Highest Sample\"}},{\"id\":\"4\",\"enabled\":true,\"type\":\"avg\",\"schema\":\"metric\",\"params\":{\"field\":\"ferm\",\"customLabel\":\"Average Sample\"}}]}",
+      "uiStateJSON": "{\"vis\":{\"colors\":{\"Upper Bound\":\"#E0752D\",\"Average ferm\":\"#3F2B5B\",\"Lowest Sample\":\"#FCE2DE\",\"Highest Sample\":\"#F9BA8F\",\"Average Sample\":\"#052B51\"}}}",
+      "description": "",
+      "version": 1,
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"c3bc78c0-ccc2-11e7-9a64-65b3e95ca5df\",\"filter\":[],\"query\":{\"query\":\"\",\"language\":\"lucene\"}}"
+      }
+    },
+    "_meta": {
+      "savedObjectVersion": 2
+    }
+  }
+]
