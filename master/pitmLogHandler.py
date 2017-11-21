@@ -10,10 +10,6 @@ import threading
 import time
 
 from pitmCfg import pitmCfg
-from pitmLCDisplay import *
-from pitmMcastOperations import pitmMcast
-from gpiotools import gpiotools
-
 
 
 class pitmLogHandler:
