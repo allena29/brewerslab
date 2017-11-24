@@ -1,6 +1,10 @@
+master/features/disabled
+command/features/disabled
+slave/features/disabled/
 google-font-download/
 master/simulator
 *.swp
+*.log
 *.pyc
 */ipc
 slave/localweb/fonts/

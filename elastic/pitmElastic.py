@@ -29,6 +29,7 @@ production.
 
 The following was needed in the config...
  bootstrap.system_call_filter: false
+ discovery.type: single-node
 
 
 Kibana configuration is updated to not use http://localhost:9200 as the
@@ -111,7 +112,7 @@ class pitmElasticMonitor:
 		if self.doMonitoring:
 			for probe in cm['currentResult']:
 				if cm['currentResult'][probe]['valid']:
-					print probe,cm['currentResult'][probe]['temperature']
+					print cm['currentResult'][probe]['temperature']
 					now = time.localtime()
 
 					probeId = self.cfg.probeId[probe]
@@ -132,10 +133,9 @@ class pitmElasticMonitor:
                                         self.msg_dict["recipe"] = cm['_recipe']
 					try:
                                                 res = self.elasticsock.index(index="pitmtemp", doc_type='mcast-temp', id=int(time.time()*10), body=self.msg_dict)
-						print "sent", res
 
                                         except:
-						print "Unable to send on socket... will try again next time"
+						print "!"
 						self.elasticsock = None
 	
 	def updateStatsZoneA(self):
