@@ -119,10 +119,8 @@ class pitmElasticMonitor:
 
 					self.msg_dict[probeId] = float(cm['currentResult'][probe]['temperature'])
 					self.msg_dict["timestamp"] = datetime.now()
-
-
                                     
-                                        target= cm['tempTarget%s%s' % (probeId[0].upper(), probeId[1:])]                    
+                                        target= cm['tempTarget%s%s' % (probeId[0].upper(), probeId.replace(' ', '')[1:])]                    
 		    			self._open_socket_if_it_is_closed()
                                         self.msg_dict['%s_low' %(probeId)] = float(target[0])
                                         self.msg_dict['%s_high' %(probeId)] = float(target[1])
