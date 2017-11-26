@@ -52,6 +52,8 @@ class pitmElasticMonitor:
 
 		self.elasticsock = None
                 self.lastmode = ""
+                
+                self.last_reading = {}
 
 	def _open_socket_if_it_is_closed(self):
 		if self.elasticsock:
@@ -65,6 +67,10 @@ class pitmElasticMonitor:
 		
 		return self.elasticsock
 
+        def _have_we_seen_this_result_before(self, probe, current_result):
+                if not self.last_reading.has_key(probe):
+                        self.last_reading[probe] = 0
+                return current_result['timestamp'] <= self.last_reading[probe]
 
 	def decodeTempMessage(self,data,zone="Unknown"):
 		"""
@@ -112,29 +118,40 @@ class pitmElasticMonitor:
 		if self.doMonitoring:
 			for probe in cm['currentResult']:
 				if cm['currentResult'][probe]['valid']:
-					print cm['currentResult'][probe]['temperature']
-					now = time.localtime()
 
-					probeId = self.cfg.probeId[probe]
+                                        if not self._have_we_seen_this_result_before(probe, cm['currentResult'][probe]):
+                                                
 
-					self.msg_dict[probeId] = float(cm['currentResult'][probe]['temperature'])
-					self.msg_dict["timestamp"] = datetime.now()
-                                    
-                                        target= cm['tempTarget%s%s' % (probeId[0].upper(), probeId.replace(' ', '')[1:])]                    
-		    			self._open_socket_if_it_is_closed()
-                                        self.msg_dict['%s_low' %(probeId)] = float(target[0])
-                                        self.msg_dict['%s_high' %(probeId)] = float(target[1])
-                                        self.msg_dict['%s_target' %(probeId)] = float(target[2])
-                                        
+                                                self.last_reading[probe] = cm['currentResult'][probe]['timestamp']
 
-        
-                                        self.msg_dict["recipe"] = cm['_recipe']
-					try:
-                                                res = self.elasticsock.index(index="pitmtemp", doc_type='mcast-temp', id=int(time.time()*10), body=self.msg_dict)
+                                                print cm['currentResult'][probe]['temperature'],probe
+                                                now = time.localtime()
+                                                probeId = self.cfg.probeId[probe]
 
-                                        except:
-						print "!"
-						self.elasticsock = None
+                                                self.msg_dict[probeId] = float(cm['currentResult'][probe]['temperature'])
+                                                self.msg_dict["timestamp"] = datetime.now()
+                                           
+                                                if probeId in ['tunA', 'tunB']:
+                                                        target= cm['tempTargetMash']
+                                                elif probeId == 'hlt':
+                                                        target= cm['tempTargetHlt']
+                                                else:
+                                                        target= cm['tempTarget%s%s' % (probeId[0].upper(), probeId.replace(' ', '')[1:])]                    
+                            
+                                                self._open_socket_if_it_is_closed()
+                                                self.msg_dict['%s_low' %(probeId)] = float(target[0])
+                                                self.msg_dict['%s_high' %(probeId)] = float(target[1])
+                                                self.msg_dict['%s_target' %(probeId)] = float(target[2])
+                                                
+
+                
+                                                self.msg_dict["recipe"] = cm['_recipe']
+                                                try:
+                                                        res = self.elasticsock.index(index="pitmtemp", doc_type='mcast-temp', id=int(time.time()*10), body=self.msg_dict)
+
+                                                except:
+                                                        print "!"
+                                                        self.elasticsock = None
 	
 	def updateStatsZoneA(self):
 		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
