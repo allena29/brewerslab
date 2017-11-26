@@ -40,132 +40,161 @@ elasticsearch url.
 
 from pitmCfg import pitmCfg
 
+
 class pitmElasticMonitor:
 
+    SERVER_NAME = 'dr-rudi.mellon-collie.net'
 
-        SERVER_NAME = 'dr-rudi.mellon-collie.net'
+    def __init__(self):
+        self.logging = 2		# 1 = syslog, 2 = stderr
+        self.cfg = pitmCfg()
 
+        self.elasticsock = None
+        self.lastmode = ""
 
-	def __init__(self):
-		self.logging=2		# 1 = syslog, 2 = stderr
-		self.cfg = pitmCfg()
+        self.last_reading = {}
 
-		self.elasticsock = None
-                self.lastmode = ""
+    def _open_socket_if_it_is_closed(self):
+        if self.elasticsock:
+            return True
 
-	def _open_socket_if_it_is_closed(self):
-		if self.elasticsock:
-			return True
+        try:
+            self.elasticsock = Elasticsearch(['192.168.1.182'])
 
-		try:
-                        self.elasticsock = Elasticsearch(['192.168.1.182'])
+        except:
+            self.elasticsock = None
 
-		except:
-			self.elasticsock = None
-		
-		return self.elasticsock
+        return self.elasticsock
 
+    def _check_message_is_valid(self, probe, cm):
+        keys_we_require = ['currentResult']
+        for key in keys_we_require:
+            if key not in cm:
+                print '%s not available in cm\n%s' % (key, cm)
+                return False
 
-	def decodeTempMessage(self,data,zone="Unknown"):
-		"""
-		"""
+        keys_we_require = ['timestamp', 'valid', 'temperature']
+        for key in keys_we_require:
+            if key not in cm['currentResult'][probe]:
+                print '%s not available in currentResult\n%s' % (key, cm['currentResult'])
+                return False
 
-		try:
-			cm = json.loads( data )
-		except:
-			return
+        keys_we_require = ['tempTargetMash', 'tempTargetHlt', 'tempTargetBoil', 'tempTargetFerm']
+        for key in keys_we_require:
+            if key not in cm:
+                print '%s not available in currentResult[probe]\n%s' % (key, cm['currentResult'][probe])
+                return False
 
-		checksum = cm['_checksum']
-		cm['_checksum'] ="                                        "
-		ourChecksum = hashlib.sha1("%s%s" %(cm,self.cfg.checksum)).hexdigest()
-		self.doMonitoring = False
-		if cm.has_key("_mode"):
-			self._mode=cm['_mode']
-			if cm['_mode'].count( "delayed_HLT"):
-				self.doMonitoring=True
-			if cm['_mode'].count( "hlt"):
-				self.doMonitoring=True
-			if cm['_mode'] == "sparge":
-				self.doMonitoring=True
+        if self._have_we_seen_this_result_before(probe, cm['currentResult'][probe]):
+            return False
 
-			if cm['_mode'].count("mash"):
-				self.doMonitoring=True
+        return cm['currentResult'][probe].has_key('valid')
 
-			if cm['_mode'].count("boil"):
-				self.doMonitoring=True
-			
-			if cm['_mode'].count("pump"):
-				self.doMonitoring=True
+    def _have_we_seen_this_result_before(self, probe, current_result):
+        if not self.last_reading.has_key(probe):
+            self.last_reading[probe] = 0
+        return current_result['timestamp'] <= self.last_reading[probe]
 
-			if cm['_mode'].count("cool"):
-				self.doMonitoring=True
-			
-			if cm['_mode'].count("ferm"):
-				self.doMonitoring=True
+    def decodeTempMessage(self, data, zone="Unknown"):
+        """
+        """
 
-                        if not cm['_mode']  == self.lastmode:
-                            self.msg_dict = {
-                                    'host' : self.SERVER_NAME
-                            }
-                            self.lastmode = cm['_mode']
+        try:
+            cm = json.loads(data)
+        except:
+            return
 
-		if self.doMonitoring:
-			for probe in cm['currentResult']:
-				if cm['currentResult'][probe]['valid']:
-					print cm['currentResult'][probe]['temperature']
-					now = time.localtime()
+        checksum = cm['_checksum']
+        cm['_checksum'] = "                                        "
+        ourChecksum = hashlib.sha1("%s%s" % (cm, self.cfg.checksum)).hexdigest()
+        self.doMonitoring = False
+        if cm.has_key("_mode"):
+            self._mode = cm['_mode']
+            if cm['_mode'].count("delayed_HLT"):
+                self.doMonitoring = True
+            if cm['_mode'].count("hlt"):
+                self.doMonitoring = True
+            if cm['_mode'] == "sparge":
+                self.doMonitoring = True
 
-					probeId = self.cfg.probeId[probe]
+            if cm['_mode'].count("mash"):
+                self.doMonitoring = True
 
-					self.msg_dict[probeId] = float(cm['currentResult'][probe]['temperature'])
-					self.msg_dict["timestamp"] = datetime.now()
+            if cm['_mode'].count("boil"):
+                self.doMonitoring = True
 
+            if cm['_mode'].count("pump"):
+                self.doMonitoring = True
 
-                                    
-                                        target= cm['tempTarget%s%s' % (probeId[0].upper(), probeId[1:])]                    
-		    			self._open_socket_if_it_is_closed()
-                                        self.msg_dict['%s_low' %(probeId)] = float(target[0])
-                                        self.msg_dict['%s_high' %(probeId)] = float(target[1])
-                                        self.msg_dict['%s_target' %(probeId)] = float(target[2])
-                                        
+            if cm['_mode'].count("cool"):
+                self.doMonitoring = True
 
-        
-                                        self.msg_dict["recipe"] = cm['_recipe']
-					try:
-                                                res = self.elasticsock.index(index="pitmtemp", doc_type='mcast-temp', id=int(time.time()*10), body=self.msg_dict)
+            if cm['_mode'].count("ferm"):
+                self.doMonitoring = True
 
-                                        except:
-						print "!"
-						self.elasticsock = None
-	
-	def updateStatsZoneA(self):
-		self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-		self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-		self.sock.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_TTL, 4)
-		self.sock.bind(('', self.cfg.mcastTemperaturePort))
-		mreq = struct.pack("4sl", socket.inet_aton(self.cfg.mcastGroup), socket.INADDR_ANY)
-		self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
-		self.mcastMembership=True
+            if not cm['_mode'] == self.lastmode:
+                self.msg_dict = {
+                    'host': self.SERVER_NAME
+                }
+                self.lastmode = cm['_mode']
 
-		while True:
-			(data, addr) = self.sock.recvfrom(1200)
-			self.decodeTempMessage(data,zone="A")	
-			time.sleep(0.2)		
+        if self.doMonitoring:
+            for probe in cm['currentResult']:
+                if self._check_message_is_valid(probe, cm):
+                    self.last_reading[probe] = cm['currentResult'][probe]['timestamp']
+
+                    now = time.localtime()
+                    probeId = self.cfg.probeId[probe]
+                    print cm['currentResult'][probe]['temperature'], probeId
+
+                    if probeId in ['tunA', 'tunB']:
+                        target = cm['tempTargetMash']
+                    elif probeId == 'hlt':
+                        target = cm['tempTargetHlt']
+                    else:
+                        target = cm['tempTarget%s%s' % (probeId[0].upper(), probeId.replace(' ', '')[1:])]
+
+                    self.msg_dict[probeId] = float(cm['currentResult'][probe]['temperature'])
+                    self.msg_dict["timestamp"] = datetime.now()
+
+                    self._open_socket_if_it_is_closed()
+                    self.msg_dict['%s_low' % (probeId)] = float(target[0])
+                    self.msg_dict['%s_high' % (probeId)] = float(target[1])
+                    self.msg_dict['%s_target' % (probeId)] = float(target[2])
+
+                    self.msg_dict["recipe"] = cm['_recipe']
+                    try:
+                        res = self.elasticsock.index(index="pitmtemp", doc_type='mcast-temp', id=int(time.time() * 10), body=self.msg_dict)
+
+                    except:
+                        print "!"
+                        self.elasticsock = None
+
+    def updateStatsZoneA(self):
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.sock.setsockopt(socket.SOL_IP, socket.IP_MULTICAST_TTL, 4)
+        self.sock.bind(('', self.cfg.mcastTemperaturePort))
+        mreq = struct.pack("4sl", socket.inet_aton(self.cfg.mcastGroup), socket.INADDR_ANY)
+        self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+        self.mcastMembership = True
+
+        while True:
+            (data, addr) = self.sock.recvfrom(1200)
+            self.decodeTempMessage(data, zone="A")
+            time.sleep(0.2)
 
 
 if __name__ == '__main__':
-	try:
-		controller = pitmElasticMonitor()
+    try:
+        controller = pitmElasticMonitor()
 
-		updateStatsThread = threading.Thread(target=controller.updateStatsZoneA)
-		updateStatsThread.daemon = True
-		updateStatsThread.start()
-	
-		while 1:
-			time.sleep(10)	
+        updateStatsThread = threading.Thread(target=controller.updateStatsZoneA)
+        updateStatsThread.daemon = True
+        updateStatsThread.start()
 
-	except KeyboardInterrupt:
-		controller.uncontrol()
+        while 1:
+            time.sleep(10)
 
-
-
+    except KeyboardInterrupt:
+        controller.uncontrol()
