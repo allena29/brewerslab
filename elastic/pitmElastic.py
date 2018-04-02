@@ -158,9 +158,14 @@ class pitmElasticMonitor:
                     self.msg_dict["timestamp"] = datetime.now()
 
                     self._open_socket_if_it_is_closed()
-                    self.msg_dict['%s_low' % (probeId)] = float(target[0])
-                    self.msg_dict['%s_high' % (probeId)] = float(target[1])
-                    self.msg_dict['%s_target' % (probeId)] = float(target[2])
+                    if isinstance(target, int):
+                        self.msg_dict['%s_low' % (probeId)] =float(target) - 0.3
+                        self.msg_dict['%s_high' % (probeId)] = float(target) + 0.3
+                        self.msg_dict['%s_target' % (probeId)] = float(target)
+                    else:
+                        self.msg_dict['%s_low' % (probeId)] = float(target[0])
+                        self.msg_dict['%s_high' % (probeId)] = float(target[1])
+                        self.msg_dict['%s_target' % (probeId)] = float(target[2])
 
                     self.msg_dict["recipe"] = cm['_recipe']
                     try:
