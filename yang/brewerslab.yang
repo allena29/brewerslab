@@ -1,0 +1,54 @@
+module brewerslab {
+
+  namespace "http://brewerslab.mellon-collie.net/";
+  prefix brewerslab;
+
+  description "This yang module provides the basic data structure for the brewerslab
+  homebrew automation software.";
+
+  revision 2018-04-01 {
+    description "First version with basic stats.";
+  }
+
+  container brewhouse {
+    description "Status for the brewhouse itself, excluding recipes";
+
+    container fermentation {
+
+      container temperature {
+        leaf latest {
+          type brewerslab:temperature;
+          config false;
+          default 0.00;
+        }
+
+        leaf setpoint {
+          type brewerslab:temperature;
+          default 17.0;
+        }
+
+        leaf highpoint {
+          description "The temperature at which we need to start actively cooling.";
+          type brewerslab:temperature;
+          default 17.3;
+        }
+
+        leaf lowpoint {
+          description "The temperature at which we need to start actively heating.";
+          type brewerslab:temperature;
+          default 16.7;
+        }
+      }
+
+    }
+
+
+  } //end of brewhouse
+
+
+  typedef temperature {
+     type decimal64 {
+         fraction-digits 2;
+     }
+  }
+}

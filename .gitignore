@@ -11,3 +11,4 @@ slave/localweb/fonts/
 htmlcov
 .coverage
 simulator
+binding.py
