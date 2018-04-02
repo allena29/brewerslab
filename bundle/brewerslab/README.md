@@ -13,6 +13,7 @@ pyang --plugindir $PYBINDPLUGIN -f pybind -o binding.py brewerslab.py
 We can then see this in action with some simple code. Pyang bind does a reasonable job of enforcing defaults.
 
 ```
+import pyangbind.lib.pybindJSON as pybindJSON
 from binding import brewerslab
 import binding
 worsdell = brewerslab()

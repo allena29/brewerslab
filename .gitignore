@@ -12,3 +12,4 @@ htmlcov
 .coverage
 simulator
 binding.py
+unit_test_file*.tmp

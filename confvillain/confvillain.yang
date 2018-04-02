@@ -1,0 +1,14 @@
+module confvillain {
+
+  namespace "http://confvillain.mellon-collie.net";
+  prefix confvillain;
+
+  description "confvillain is an approach at providing a lightweight daemon to store config/operation data.
+  The name came from trying to think of a name that somehow encapsulates 'daemon' and ended up finding 
+    'I was a little demon I can tell you' - which led to monster, ogre, fiend, devil villain.";
+
+  extension implementor {
+    argument integer;
+  }
+
+}
