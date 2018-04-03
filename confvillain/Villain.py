@@ -15,10 +15,10 @@ except ImportError:
     raise RuntimeError('Unable to import pyang bindings.. have you run make-bundle.sh')
     sys.exit(9)
 
+
 class Goblin:
 
-
-    def __init__(self, appname, yangmodule, yangpath):
+    def __init__(self, appname, yangmodule, yangpath, open_stored_config=True):
         """This method provides a common approach to build and manage pyangbind based config
         with persistence and very primitive blocking.
 
@@ -41,59 +41,68 @@ class Goblin:
         self.log.info('Goblin Init: %s' % (self))
 
         # Load pyangbind schema and get down to our child.
-        self.__yang_obj = None
+        self._yang_obj = None
         for (name, obj) in inspect.getmembers(binding):
             if name == yangmodule:
-                self.__yang_obj = obj(path_helper=self.__path_helper)
+                self._yang_obj = obj(path_helper=self.__path_helper)
 
-        if not self.__yang_obj:
+        if not self._yang_obj:
             raise RuntimeError('Unable to find class % in pyangbinding' % (yangmodule))
-        self.log.debug('Found top-level yang module object %s' % (repr(self.__yang_obj)))
+        self.log.debug('Found top-level yang module object %s' % (repr(self._yang_obj)))
 
-        # Navigate down  
-        self.__ourpath = yangpath
+        # Navigate down
+        self._ourpath = yangpath
         try:
-            self.__yang = self.__path_helper.get(yangpath)[0]
+            self._yang = self.__path_helper.get(yangpath)[0]
         except:
             raise RuntimeError('Unable to navigate to %s' % (yangpath))
 
         self.__appname = appname
 
-        working_directory = os.getcwd()
-        config_directory = '../../confvillain/hoard'
-        cache_directory = '../../confvillain/heap'
+        if open_stored_config:
 
-        if os.path.exists('%s/persist/%s.cvd' % (config_directory, self.__appname)):
-            self.log.info('Loading previous persisted data')
-            o = open('%s/persist/%s.cvd' % (config_directory, self.__appname))
-            json_obj = json.loads(o.read())
-            o.close()
+            working_directory = os.getcwd()
+            config_directory = '../../confvillain/hoard'
+            cache_directory = '../../confvillain/heap'
 
-            self.__yang = pybindJSONDecoder.load_ietf_json(json_obj, None, None, self.__yang)
+            if os.path.exists('%s/persist/%s.cvd' % (config_directory, self.__appname)):
+                self.log.info('Loading previous persisted data')
+                o = open('%s/persist/%s.cvd' % (config_directory, self.__appname))
+                json_str = o.read()
+                o.close()
+                self._yang = self.loader(self._yang, json_str)
 
-        elif os.path.exists('%s/default/%s.cvd' % (config_directory, self.__appname)):
-            self.log.info('Loading default ata')
-        else:
-            # Note: this is a custom version of pyangbind to filter out opdata
-            self.log.info('No persist or default data to load... using empty schema')
-            running = open('%s/running/%s.cvd' % (cache_directory, self.__appname), 'w')
-            running.write(pybindJSON.dumps(self.__yang, filter=False, ignore_opdata=True, mode='ietf'))
-            running.close()
-        
-        
-        self.log.info('Goblin Setup %s' % (self))
-        self.setup()
+            elif os.path.exists('%s/default/%s.cvd' % (config_directory, self.__appname)):
+                self.log.info('Loading default ata')
+            else:
+                # Note: this is a custom version of pyangbind to filter out opdata
+                self.log.info('No persist or default data to load... using empty schema')
+                running = open('%s/running/%s.cvd' % (cache_directory, self.__appname), 'w')
+                running.write(self.dumper(self._yang))
+                running.close()
+
+        if hasattr(self, 'setup') and callable(self.setup):
+            self.log.info('Goblin Setup %s' % (self))
+            self.setup()
 
         self.log.info('Goblin Started %s' % (self))
+
+    def dumper(self, yang):
+        return pybindJSON.dumps(yang, filter=False, ignore_opdata=True, mode='ietf')
+
+    def loader(self, yang, json_str):
+        try:
+            json_obj = json.loads(json_str)
+        except ValueError as err:
+            raise ValueError('Invalid JSON payload provided\n' + err.message)
+        return pybindJSONDecoder.load_ietf_json(json_obj, None, None, yang)
 
     def get_config(self, path):
         """
         This method takes in an XPATH(like?) expresion and returns data objects
         """
-        self.log.debug('GET: %s => %s' % (path, self.__path_helper.get('%s%s' % (self.__ourpath, path))))
+        self.log.debug('GET: %s => %s' % (path, self.__path_helper.get('%s%s' % (self._ourpath, path))))
         return self.__path_helper.get(path)
-
-
 
     def __del__(self):
         self.log.info('Goblin Finished: %s' % (self))
