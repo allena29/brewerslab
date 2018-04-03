@@ -14,5 +14,6 @@ install-pyenv:
 	./pyenv_installer
  
 tempfs:
-	sudo mount -t tmpfs -o size=50M tmpfs heap/running
+	[[ `uname` = 'Darwin' ]] && RD=`hdiutil attach -nomount ram://99000`;newfs_hfs -v 'cv-heap' $$RD;mount -o noatime -t hfs $$RD heap/running/ || echo 'Not running Darwin'
+	[[ `uname` = 'Linux' ]] && sudo mount -t tmpfs -o size=50M tmpfs heap/running || echo 'Not running Linux'
 	touch heap/running/.gitkeep
