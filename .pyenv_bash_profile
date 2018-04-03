@@ -1,0 +1,7 @@
+#
+# PYENV settings
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+export PS1="{\[\033[36m\]\u@\[\033[36m\]\h} \[\033[33;1m\]\w\[\033[m\] \$ "
+export PYENV_VIRTUALENV_DISABLE_PROMPT=1
+

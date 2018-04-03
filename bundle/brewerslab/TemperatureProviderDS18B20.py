@@ -38,11 +38,11 @@ class TemperatureProviderDS18B20(Villain.Goblin):
 
         # odd readings
         self.odd_readings = {}
+        self.currentTemperatures = {}
 
         # we need to supress results of 0 and 85 if they are the instant result
         self.lastResult = {}
 
-        print os.getcwd()
         if os.path.exists("simulator"):
             self.one_wire_temp_result_directory = "test/artefacts/sys_bus_w1_devices"
             self.log.warning('Using fake 1wire directory')
@@ -51,87 +51,11 @@ class TemperatureProviderDS18B20(Villain.Goblin):
 
     def _reject_result(self, probe, temperature, reason="unspecified"):
         self.odd_readings[probe].append(temperature)
-        self._log('rejecting result %s %s (reason: %s)' % (probe, temperature, reason))
+        self.log.info('rejecting result %s %s (reason: %s)' % (probe, temperature, reason))
         self.currentTemperatures[probe] = {'timestamp': time.time(), 'temperature': temperature, 'valid': False}
 
     def _accept_adjust_and_add_a_reading(self, probe, temperature):
         adjust = 0
-        # TODO: this needs to use xpath and path handler.
-        # Note: if we get from a list though we get a list back - depends on how good our
-        # xpath is ther emight be multiple elements, there might not be
-        # However this all seems to work
-        """
-        {
-    "brewhouse": {
-        "temperature": {
-            "hardware": {
-                "probe": {
-                    "132-123": {
-                        "id": "132-123",
-                        "offsets": {
-                            "1.2 1.3": {
-                                "high": 1.3,
-                                "low": 1.2,
-                                "offset": 0.0
-                            },
-                            "1.3 1.99": {
-                                "high": 1.99,
-                                "low": 1.3,
-                                "offset": 0.0
-                            }
-                        }
-                    }
-                }
-            },
-            "fermentation": {
-                "setpoint": 17.0,
-                "probe": {
-                    "id": ""
-                },
-                "lowpoint": 16.7,
-                "results": {
-                    "average": {}
-                },
-                "highpoint": 17.3
-            }
-        }
-    },
-    "recipes": {
-        "recipe": {}
-    },
-    "ingredients": {
-        "adjunct": {},
-        "hops": {},
-        "fermentable": {}
-    }
-}
-
-In [45]: #probe.offsets.add('1.3 1.99')
-
-In [46]: print( ph.get("/brewhouse/temperature/hardware/probe[id='132-123']/offsets[low='1.2'][high='1.3']"))
-[<pyangbind.lib.yangtypes.YANGBaseClass object at 0x104c0b168>]
-
-In [47]: offsets = ph.get("/brewhouse/temperature/hardware/probe[id='132-123']/offsets")
-
-In [48]:  ph.get("/brewhouse/temperature/hardware/probe[id='132-123']/offsets")
-Out[48]:
-[<pyangbind.lib.yangtypes.YANGBaseClass object at 0x104c0b168>,
- <pyangbind.lib.yangtypes.YANGBaseClass object at 0x104c56050>]
-
-In [49]:  ph.get("/brewhouse/temperature/hardware/probe[id='132-123']/offsets")[0].low
-Out[49]: Decimal('1.20')
-
-In [50]:  ph.get("/brewhouse/temperature/hardware/probe[id='132-123']/offsets")[1].low
-Out[50]: Decimal('1.30')
-
-In [51]:
-
-
-#Appears if we fetchon a container we get a list
-# in fact we always get a list... just if it has multiple entries or ot is the question.
-
-        """
-
         probe_offsets = self.get_config("/hardware/probe[id='%s']" % (probe))
 
         for offset in probe_offsets:
@@ -213,7 +137,7 @@ In [51]:
                     self._accept_adjust_and_add_a_reading(probe, temperature)
                 else:
                     if temperature > self.lastResult[probe] * 1.05 or temperature < self.lastResult[probe] * 0.95:
-                        self._reject_result(probe, temperature, '+/- 5%% swing')
+                        self._reject_result(probe, temperature, '+/- 55% swing')
                     else:
                         self._accept_adjust_and_add_a_reading(probe, temperature)
 

@@ -50,5 +50,6 @@ In the short term everything is probably hosed on one pi anyway that's time crit
 
 ```python
 # Run
-PYTHONPATH="$PYTHONPATH:../../confvillain" python TemperatureProviderDS18B20.py ; more ../../confvillain/hoard/running/TemperatureDS18B20.cvd
+PYTHONPATH="$PYTHONPATH:../../confvillain" python TemperatureProviderDS18B20.py 
+3PYTHONPATH="$PYTHONPATH:../../confvillain" python TemperatureProviderDS18B20.py ; cat ../../confvillain/heap/running/TemperatureDS18B20.cvd
 ```

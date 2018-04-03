@@ -25,7 +25,7 @@ class Goblin:
         The method takes two attributes
         - appname -     an application tag which may in the future be used to provide a
                         namespace. (e.g. TemperatureDS18B20)
-        - yangmodule -  name of the ynag module as considered to be the top-level in pyangbind
+        - yangmodule -  name of the yang module as considered to be the top-level in pyangbind
                         auto-generated code. (e.g. brewerslab)
         - yangpath -    An XPATH expression providing a single instance of the data model that this
                         goblin is responsible for. (e.g. /brewhouse/temperature)
