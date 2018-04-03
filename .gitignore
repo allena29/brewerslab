@@ -2,7 +2,7 @@ master/features/disabled
 command/features/disabled
 slave/features/disabled/
 google-font-download/
-master/simulator
+simulator
 *.swp
 *.log
 *.pyc
@@ -13,4 +13,5 @@ htmlcov
 simulator
 binding.py
 unit_test_file*.tmp
-*cvd
+*/heap/running/*.cvd
+*/hoard/persist/*.cvd

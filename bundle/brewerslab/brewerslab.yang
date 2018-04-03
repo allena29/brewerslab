@@ -44,27 +44,9 @@ module brewerslab {
         }
 
         container probe {
-
           leaf id {
             description "The probe id to provide measurements.";
             type string;
-          }
-
-          list offsets {
-            description "One or more offsets, if the temperature measured is > low and <= high then 
-            the offset will be applied. This is used because the accuracy of DS18B20 probes varies
-            with higher temperatures.";
-            key "low high";
-
-            leaf low {
-              type brewerslab:temperature;
-            }
-            leaf high {
-              type brewerslab:temperature;
-            }
-            leaf offset {
-              type brewerslab:temperature;
-            }
           }
         } // end of probe
 
@@ -99,6 +81,33 @@ module brewerslab {
 
         }
       }
+
+      container hardware {
+        list probe {
+          key id;
+          leaf id {
+            description "A given probe id - usually a hardware addressable identifier.";
+            type string;
+          }
+
+          list offsets {
+            description "One or more offsets, if the temperature measured is > low and <= high then 
+            the offset will be applied. This is used because the accuracy of DS18B20 probes varies
+            with higher temperatures.";
+            key "low high";
+
+            leaf low {
+              type brewerslab:temperature;
+            }
+            leaf high {
+              type brewerslab:temperature;
+            }
+            leaf offset {
+              type brewerslab:temperature;
+            }
+          }
+        } // end of probe
+      } // end hardware
 
     } //end of temperatures
 
