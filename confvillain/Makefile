@@ -5,8 +5,7 @@ PYBIND := $(shell /usr/bin/env python -c 'import pyangbind; import os; print ("{
 all:	pybindtest unittest
 
 pybindtest:
-	export PYTHONPATH=$(PYTHONPATH):./
-	pyang --plugindir $(PYBIND) --use-xpathhelper -f pybind -o binding.py test/test.yang
+	PYTHONPATH=$(PYTHONPATH):./ pyang --plugindir $(PYBIND) --use-xpathhelper -f pybind -o binding.py test/tester.yang
 
 unittest:
 	nose2 -s test -t python -v --with-coverage --coverage-report html
