@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import Villain 
+import Villain
 import os
 import hashlib
 import struct
@@ -30,6 +30,7 @@ says we have to care about the temperature it sends us.
 
 """
 
+
 class TemperatureProviderDS18B20(Villain.Goblin):
 
     def setup(self):
@@ -48,7 +49,6 @@ class TemperatureProviderDS18B20(Villain.Goblin):
         else:
             self.one_wire_temp_result_directory = "/sys/bus/w1/devices/"
 
-
     def _reject_result(self, probe, temperature, reason="unspecified"):
         self.odd_readings[probe].append(temperature)
         self._log('rejecting result %s %s (reason: %s)' % (probe, temperature, reason))
@@ -58,7 +58,7 @@ class TemperatureProviderDS18B20(Villain.Goblin):
         adjust = 0
         # TODO: this needs to use xpath and path handler.
         # Note: if we get from a list though we get a list back - depends on how good our
-        # xpath is ther emight be multiple elements, there might not be 
+        # xpath is ther emight be multiple elements, there might not be
         # However this all seems to work
         """
         {

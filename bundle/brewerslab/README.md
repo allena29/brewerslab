@@ -1,8 +1,11 @@
 # A Basic Bundle
 
 - A single yang model
-- run the make-bundle.sh command, this uses pyangbind to convert the schema to python.
+- run `make` this uses pyangbind to convert the schema to python and runs any unit tests
 - PYTHONPATH pointing to ../../confvillain
+
+*assumption code will run from the bundle directory* and the libraries/common code/yang will be accessible via `../../confvillain`
+
 
 ## Running the Demon Goblin!
 

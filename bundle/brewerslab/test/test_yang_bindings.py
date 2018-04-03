@@ -1,4 +1,6 @@
 import unittest
+import sys
+sys.path.append('../../confvillain')
 
 from binding import brewerslab
 
@@ -20,7 +22,7 @@ class TestYang(unittest.TestCase):
         self.assertEqual(self.subject.fermentation.setpoint, 0.0)
         self.assertEqual(self.subject.fermentation.highpoint, 0.0)
         self.assertEqual(self.subject.fermentation.lowpoint, 0.0)
-        probe1 = self.subject.probe.add('123-456')
+        probe1 = self.subject.hardware.probe.add('123-456')
 
         offset1 = probe1.offsets.add('0 99')
         offset1.offset = 0.05
