@@ -1,0 +1,21 @@
+#!/usr/bin/env python2.7
+import sys
+import IPython
+sys.path.append('../../confvillain')
+import pyangbind.lib.pybindJSON as pybindJSON
+import binding
+
+from binding import brewerslab
+p = brewerslab()
+
+def dump(obj=None, filter=False, ignore_opdata=True):
+    global p
+    if not obj:
+        obj = p
+    print(pybindJSON.dumps(obj, filter=filter, ignore_opdata=ignore_opdata))
+
+
+print('brewerslab() pynabind instance => p')
+print('dump() to provide json object')
+
+IPython.embed(display_banner=False)
