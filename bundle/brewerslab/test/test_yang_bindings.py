@@ -10,7 +10,10 @@ class TestYang(unittest.TestCase):
         yang = brewerslab()
         self.subject = yang.brewhouse.temperature
 
-        self.assertEqual(self.subject.fermentation.latest, 0.0)
+        self.assertEqual(self.subject.fermentation.results.latest, 0.0)
+        self.assertEqual(self.subject.fermentation.results.average.minute, 0.0)
+        self.assertEqual(self.subject.fermentation.results.average.hourly, 0.0)
+        self.assertEqual(self.subject.fermentation.results.average.daily, 0.0)
         self.assertEqual(self.subject.fermentation.monitor, 0.0)
         # Note: pyangbind doesn't create objects with default value
         # although there are methods to test/retreive default

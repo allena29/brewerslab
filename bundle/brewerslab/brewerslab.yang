@@ -26,12 +26,6 @@ module brewerslab {
           config false;
         }
 
-        leaf latest {
-          type brewerslab:temperature;
-          config false;
-          default 0.00;
-        }
-
         leaf setpoint {
           type brewerslab:temperature;
           default 17.0;
@@ -71,7 +65,36 @@ module brewerslab {
             leaf offset {
               type brewerslab:temperature;
             }
+          }
+        } // end of probe
 
+        container results {
+
+          leaf latest {
+            type brewerslab:temperature;
+            config false;
+            default 0.00;
+          }
+
+          container average {
+
+            description "This container is theoretical";
+
+            leaf minute {
+              type brewerslab:temperature;
+              config false;
+              default 0.00;
+            }
+            leaf hourly {
+              type brewerslab:temperature;
+              config false;
+              default 0.00;
+            }
+            leaf daily {
+              type brewerslab:temperature;
+              config false;
+              default 0.00;
+            }
           }
 
         }
