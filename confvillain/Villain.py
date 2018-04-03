@@ -62,8 +62,8 @@ class Goblin:
         if open_stored_config:
 
             working_directory = os.getcwd()
-            config_directory = '../../confvillain/hoard'
-            cache_directory = '../../confvillain/heap'
+            config_directory = '../../hoard'
+            cache_directory = '../../heap'
 
             if os.path.exists('%s/persist/%s.cvd' % (config_directory, self.__appname)):
                 self.log.info('Loading previous persisted data')

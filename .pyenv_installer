@@ -1,0 +1,34 @@
+#!/bin/bash
+
+if [ -d ~/.pyenv ]
+then
+  echo '~/.pyenv already exists'
+else
+  git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+fi
+
+if [ -d ~/.pyenv/plugins/pyenv-virtualenv ]
+then
+  echo '~/.pyenv/plugins/pyenv-virtualenv already exists'
+else
+  git clone https://github.com/pyenv/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv
+fi
+
+PATH=~/.pyenv/bin:$PATH
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+
+pyenv install 2.7.13
+pyenv virtualenv 2.7.13 brewerslab
+
+pip install --requirement requirements.lock
+
+
+## PYENV settings in bashrc
+echo 'export PATH=~/.pyenv/bin:$PATH' >>~/.bash_profile
+echo 'eval "$(pyenv init -)"' >>~/.bash_profile
+echo 'eval "$(pyenv virtualenv-init -)"' >>~/.bash_profile
+echo 'export PS1="{\[\033[36m\]\u@\[\033[36m\]\h} \[\033[33;1m\]\w\[\033[m\] \$ "' >>~/.bash_profile
+echo 'export PYENV_VIRTUALENV_DISABLE_PROMPT=1' >>~/.bash_profile
+
+

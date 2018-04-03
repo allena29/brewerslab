@@ -11,10 +11,8 @@ all:
 	done
 
 install-pyenv:
-	git clone https://github.com/pyenv/pyenv.git ~/.pyenv
-	git clone https://github.com/pyenv/pyenv-virtualenv.git $(pyenv root)/plugins/pyenv-virtualenv
-	pyenv install 2.7.13
-	pyenv virtualenv 2.7.13 brewerslab
-	./pyenv_bash_profile
-  cat .pyenv_bash_profile >>~/.bash_profile	
-  
+	./pyenv_installer
+ 
+tempfs:
+	sudo mount -t tmpfs -o size=50M tmpfs heap/running
+	touch heap/running/.gitkeep

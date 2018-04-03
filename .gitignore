@@ -13,5 +13,5 @@ htmlcov
 simulator
 binding.py
 unit_test_file*.tmp
-*/heap/running/*.cvd
-*/hoard/persist/*.cvd
+heap/running/*.cvd
+hoard/persist/*.cvd
