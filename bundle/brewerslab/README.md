@@ -1,37 +1,51 @@
-# YANG to Python
+# A Basic Bundle
 
-**pyangbind** is used to convert yang into python classes.
+- A single yang model
+- run the make-bundle.sh command, this uses pyangbind to convert the schema to python.
+- PYTHONPATH pointing to ../../confvillain
 
+## Running the Demon Goblin!
 
-```
-export PYBINDPLUGIN=`/usr/bin/env python -c \
-'import pyangbind; import os; print ("{}/plugin".format(os.path.dirname(pyangbind.__file__)))'`
-echo $PYBINDPLUGIN
-pyang --plugindir $PYBINDPLUGIN -f pybind -o binding.py brewerslab.py
-```
-
-We can then see this in action with some simple code. Pyang bind does a reasonable job of enforcing defaults.
+The daemon (named Goblin) looks somethings like this
 
 ```
-import pyangbind.lib.pybindJSON as pybindJSON
-from binding import brewerslab
-import binding
-worsdell = brewerslab()
-# Because this is a config false node we can't assign directly.
-worsdell = brewhouse.fermentation.temperature._set_latest(1.34)
+class TemperatureProviderDS18B20(Villain.Goblin):
 
-o=open('brewhouse.json','w')
-o.write((pybindJSON.dumps(worsdell.brewhouse)))
-o.close()
+    def setup(self):
+        pass
 
-worsdell.brewhouse.fermentation.temperature._set_latest(1.39)
-
-loaded_back = pybindJSON.load('brewhouse.json', binding, 'yc_brewhouse_brewerslab__brewhouse')
-print(loaded_back.fermentation.temperature.latest)
-
+if __name__ == '__main__':
+    try:
+        daemon = TemperatureProviderDS18B20('TemperatureDS18B20', 'brewerslab.brewhouse.temperature')
+        daemon.start()
+    except KeyboardInterrupt:
+        pass
 ```
 
-So this perhaps gives us a way of the temperature daemon holding it's *own* configuration and and operational data if it could save it's config data to disk periodically.
+This extends Villain.Goblin and must implement the following methods.
 
-We could imagine then a wrapper netconf/cli/rest/web process which ties together the individual delegated parts of the model.
+- **setup** called by the parent class
+- **start** 
 
+
+It is anticipated that these methods will implement a loop the looping code should do something like
+
+- check if we need to wait for someone to do some config
+- check if we need to reload our config
+
+
+The Goblin has some basic framework for loading pyangbind based config and that should let us read/write data.
+If we have written some data that's important to be flushed to disk we should call something like *data change*
+
+To consider going forward - scalability of just always flushing everything to a tmpfs disk - performance of 
+serialising JSON could be a consideration... for something like the temperature results we can get sub second updated
+with the crude multicast stuff we have in today... Do we move away from that to simplify things and just have
+one node exposing tmpfs over NFS... or do we hook some kind of 'streaming telemety' in place of the multicast stuff.
+
+In the short term everything is probably hosed on one pi anyway that's time critical - and other stuff is more cosmetic.
+
+
+```python
+# Run
+PYTHONPATH="$PYTHONPATH:../../confvillain" python TemperatureProviderDS18B20.py ; more ../../confvillain/hoard/running/TemperatureDS18B20.cvd
+```
