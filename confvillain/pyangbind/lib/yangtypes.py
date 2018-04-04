@@ -805,12 +805,13 @@ def YANGListType(*args, **kwargs):
 
       return self._members[keystr]
 
-    def get(self, filter=False):
+    def get(self, filter=False, ignore_opdata=False):
       d = collections.OrderedDict()
       d._user_ordered = self._members._user_ordered
       for i in self._members:
         if hasattr(self._members[i], "get"):
-          d[i] = self._members[i].get(filter=filter)
+          # this gets called for list items
+          d[i] = self._members[i].get(filter=filter, ignore_opdata=ignore_opdata)
         else:
           d[i] = self._members[i]
       return d

@@ -29,10 +29,10 @@ class PybindBase(object):
   def __str__(self):
     return str(self.elements())
 
-  def get(self, filter=False):
+  def get(self, filter=False, ignore_opdata=False):
     def error():
       return NameError, "element does not exist"
-
+   
     d = {}
     # for each YANG element within this container.
     for element_name in self._pyangbind_elements:
@@ -47,8 +47,31 @@ class PybindBase(object):
       if hasattr(element, "get"):
         # this is a YANG container that has its own
         # get method
-        d[element_id] = element.get(filter=filter)
-        if filter is True:
+
+        # We can't really add ignore_opdata into OrderedDict
+        d[element_id] = element.get(filter=filter, ignore_opdata=ignore_opdata)
+
+        if ignore_opdata is True:
+          if isinstance(d[element_id], dict):
+            for entry in d[element_id].keys():
+                if hasattr(d[element_id][entry], "_is_config"):
+                    if not d[element_id][entry]._is_config:
+                        del d[element_id][entry]
+                
+          # perhaps this is only if the list is the top thing int he yang module?
+          elif isinstance(d[element_id], list):
+            for list_entry in d[element_id]:
+              if hasattr(list_entry, "_changed"):
+                if not list_entry._changed():
+                  d[element_id].remove(list_entry)
+            if len(d[element_id]) == 0:
+              del d[element_id]
+                
+        # TODO: think about what to do with the list part.
+        # Technically lists could be non config data in yang
+        
+
+        elif filter is True:
           # if the element hadn't changed but we were
           # filtering unchanged elements, remove it
           # from the dictionary
@@ -84,9 +107,9 @@ class PybindBase(object):
             if len(d[element_id]) == 0:
               del d[element_id]
       else:
-        # this is an attribute that does not have get()
-        # method
-        if filter is False and not element._changed() and not element._present() is True:
+        if ignore_opdata and '_is_config' in element.__dict__ and element._is_config is False:
+            pass
+        elif filter is False and not element._changed() and not element._present() is True:
           if element._default is not False and element._default:
             d[element_id] = element._default
           else:
