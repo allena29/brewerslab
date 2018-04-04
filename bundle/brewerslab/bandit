@@ -1,0 +1,49 @@
+#!/usr/bin/python
+
+import cmd
+import sys
+import time
+
+class Bridge:
+
+    def __init__(self):
+        print 's'
+        self.conf_mode = False
+
+
+class Bandit(cmd.Cmd):
+
+    interface = Bridge()
+
+    intro = """
+-------------------------------------------------------
+Bandit 
+-------------------------------------------------------"""
+
+    prompt = "mexican@localhost> "
+
+    def do_show(self, arg):
+        'show operational data'
+        print arg,band.__dict__
+
+    def do_exit(self, arg):
+        'Exit the CLI'
+        sys.exit(0)
+
+    def do_conf(self, arg):
+        print band.__dict__
+        if self.bridge.conf_mode:
+            raise ValueError('Invalid Command')
+        else:
+            print 'Entering configuration mode\n'
+            self.bridge.conf_mode = True
+        band.lastcmd = ''
+        prompt = '[ok][%s]\n[edit]\n\n' %(time.ctime())
+        print band.do_exit.__dict__
+
+if __name__ == '__main__':
+    band = Bandit()
+    band.bridge = Bridge()
+    band.bridge.band = band
+    band.cmdloop()
+
