@@ -14,4 +14,5 @@ simulator
 binding.py
 unit_test_file*.tmp
 heap/running/*.cvd
+heap/opdata/*.cvd
 hoard/persist/*.cvd

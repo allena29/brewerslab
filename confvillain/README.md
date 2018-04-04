@@ -36,6 +36,12 @@ So this perhaps gives us a way of the temperature daemon holding it's *own* conf
 We could imagine then a wrapper netconf/cli/rest/web process which ties together the individual delegated parts of the model.
 
 
+## GHOUL (Restconf servce)
+
+The **gunicorn --reload ghoul.app** server provides a number of resources
+
+- `/v1/datastore/{datatore}/{path}` This returns the contents of the datastore *if* it exists, otherwise there is a 404. The datastore is currently just opdata
+
 ## CUSTOM PYANGBIND
 
 This currently uses a custom version of pyangbind - the current version has the option to filter data which hasn't been changed but all operational data (config false) would be dumped. I would rather not store operatonal data to disk when serialising with JSON. To be honest right now I'm not entirely sure about the patch (well certainly not with the debug crap in). 

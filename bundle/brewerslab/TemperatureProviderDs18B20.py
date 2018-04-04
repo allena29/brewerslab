@@ -155,7 +155,7 @@ class TemperatureProviderDs18B20(Villain.Goblin):
 
 if __name__ == '__main__':
     try:
-        MONSTER = TemperatureProviderDs18B20('TemperatureDS18B20', 'brewerslab', '/brewhouse/temperature')
+        MONSTER = TemperatureProviderDs18B20('TemperatureProvider', 'brewerslab', '/brewhouse/temperature')
         MONSTER.start()
     except KeyboardInterrupt:
         pass

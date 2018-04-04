@@ -8,5 +8,5 @@ api = application = falcon.API()
 
 
 db_handler = dbres()
-api.add_route('/v1/db', db_handler)
+api.add_route('/v1/datastore/{datastore}/{path}', db_handler)
 

@@ -53,3 +53,24 @@ In the short term everything is probably hosed on one pi anyway that's time crit
 PYTHONPATH="$PYTHONPATH:../../confvillain" python TemperatureProviderDS18B20.py 
 3PYTHONPATH="$PYTHONPATH:../../confvillain" python TemperatureProviderDS18B20.py ; cat ../../confvillain/heap/running/TemperatureDS18B20.cvd
 ```
+
+
+
+### Next things to do
+
+
+Imeplement something on the *server* which arbitrates and collects data together from remote nodes.
+
+We don't want the CLI thing to be any more heavy weight than having JSON payloads shipped to it which gives the schema.
+We probably should add to pyangbind to give a mode which shows *only* oper data
+
+That way we can refresh operdata and config data separately and flush them separately to the heap/running directory.
+
+We then have a deamon on the server which brings to gether the data when requested to send to whatever is interested.
+
+We could imagine an API like..
+
+- /get/oper/path
+- /set/config/path
+- /get/config/path
+- /discover - providing a mapping of how things are split.
