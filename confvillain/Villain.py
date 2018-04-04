@@ -97,7 +97,13 @@ class Goblin:
         This makes use of a customised version of pyangbind distributed as part
         of this repository.
         """
-        return pybindJSON.dumps(yang, filter=False, ignore_opdata=True, mode='ietf')
+        formal_json = json.loads(pybindJSON.dumps(yang, filter=False, ignore_opdata=True, mode='ietf'))
+        filtered = {}
+        for key in formal_json:
+            newkey = key.split(':')[-1]
+            filtered[newkey] = formal_json[key]
+            filtered['__namespace'] = key.split(':')[0]
+        return json.dumps(filtered)
 
     def loader(self, yang, json_str):
         """
@@ -106,7 +112,16 @@ class Goblin:
         """
 
         try:
-            json_obj = json.loads(json_str)
+            filtered = json.loads(json_str)
+            if '__namespace' in filtered:
+                namespace = filtered['__namespace']
+                del filtered['__namespace']
+                formal_json = {}
+                for key in filtered:
+                    formal_json['%s:%s' % (namespace, key)] = filtered[key]
+                json_obj = formal_json
+            else:
+                json_obj = filtered
         except ValueError as err:
             raise ValueError('Invalid JSON payload provided\n' + err.message)
         return pybindJSONDecoder.load_ietf_json(json_obj, None, None, yang)

@@ -55,7 +55,8 @@ class TestYang(unittest.TestCase):
 
         # Basic check on the serialisation
         serialised = self.subject.dumper(yang)
-        expected_serialised = """{\n    "tester:list1": [\n        {\n            "nonkey": "", \n            "key1": "abc123"\n        }, \n        {\n            "nonkey": "now_this_value_has_been_set", \n            "key1": "xyz987"\n        }, \n        {\n            "nonkey": "", \n            "key1": "ooo000"\n        }\n    ]\n}"""
+        expected_serialised = """{"__namespace": "tester", "list1": [{"nonkey": "", "key1": "abc123"}, {"nonkey": "now_this_value_has_been_set", "key1": "xyz987"}, {"nonkey": "", "key1": "ooo000"}]}"""
+
         self.assertEqual(serialised, expected_serialised)
 
         # After deleting an entry the serialised answer must differ
