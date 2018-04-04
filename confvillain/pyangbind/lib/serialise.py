@@ -476,7 +476,7 @@ class pybindJSONDecoder(object):
 
 class pybindIETFJSONEncoder(pybindJSONEncoder):
   @staticmethod
-  def generate_element(obj, parent_namespace=None, flt=False, ignore_opdata=False):
+  def generate_element(obj, parent_namespace=None, flt=False, ignore_opdata=False, ignore_conf_leaves=False):
     """
       Convert a pyangbind class to a format which encodes to the IETF JSON
       specification, rather than the default .get() format, which does not
@@ -508,17 +508,20 @@ class pybindIETFJSONEncoder(pybindJSONEncoder):
       generated_by = getattr(element, "_pybind_generated_by", None)
       if generated_by == "container":
         d[yname] = pybindIETFJSONEncoder.generate_element(element,
-                      parent_namespace=element._namespace, flt=flt, ignore_opdata=ignore_opdata)
+                      parent_namespace=element._namespace, flt=flt, ignore_opdata=ignore_opdata, ignore_conf_leaves=ignore_conf_leaves)
         if not len(d[yname]):
           del d[yname]
       elif generated_by == "YANGListType":
         d[yname] = [pybindIETFJSONEncoder.generate_element(i,
-                      parent_namespace=element._namespace, flt=flt, ignore_opdata=ignore_opdata)
+                      parent_namespace=element._namespace, flt=flt, ignore_opdata=ignore_opdata, ignore_conf_leaves=ignore_conf_leaves)
                         for i in element._members.itervalues()]
         if not len(d[yname]):
           del d[yname]
       else:
+
         if ignore_opdata and element._is_config is False:
+          pass
+        elif ignore_conf_leaves and element._is_config and element._is_leaf and element._is_keyval is False:
           pass
         elif flt and element._changed():
           d[yname] = element
