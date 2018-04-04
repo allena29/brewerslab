@@ -88,9 +88,23 @@ class Goblin:
         self.log.info('Goblin Started %s' % (self))
 
     def dumper(self, yang):
+        """        
+        This method stores the in-memory object structure as an IETF JSON object.
+        All config based nodes are dumped, but op-data is not.
+
+        The yang object must be provided to this method.
+
+        This makes use of a customised version of pyangbind distributed as part
+        of this repository.
+        """
         return pybindJSON.dumps(yang, filter=False, ignore_opdata=True, mode='ietf')
 
     def loader(self, yang, json_str):
+        """
+        This method loads a IETF Json string representing the in-memory object structure
+        and replaces the in-memory data.
+        """
+
         try:
             json_obj = json.loads(json_str)
         except ValueError as err:
@@ -99,10 +113,10 @@ class Goblin:
 
     def get_config(self, path):
         """
-        This method takes in an XPATH(like?) expresion and returns data objects
+        This method takes in an XPATH(like?) expresion and returns data objects.
         """
         self.log.debug('GET: %s => %s' % (path, self.__path_helper.get('%s%s' % (self._ourpath, path))))
-        return self.__path_helper.get(path)
+        return self.__path_helper.get('%s%s' % (self._ourpath, path))
 
     def __del__(self):
         self.log.info('Goblin Finished: %s' % (self))

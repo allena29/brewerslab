@@ -1,37 +1,42 @@
 #!/usr/bin/python
 
-import Villain
 import os
-import hashlib
-import struct
-import socket
-import syslog
-import json
-import sys
-import time
 import re
-
-"""
-This is an example of a basic temperature provider with basic logic
-included to filter out known bad results. In this case the 1wire
-temperature probes can return spurious readings if multiple probes
-are on the same bus and there is interference - typically this means
-a reading of 85deg C is returned. 
-
-In the use case of the brewery there is never a reading which suddenly
-becomes 85deg C - the boil and heating sparge water may return 85 deg
-but there will be a steady rise/fall in temperature because it takes
-a lot of energy to heat the large of volume of liquor.
-
-Potentially Tilt Hydrometers could be an alternative provide but I 
-would prbably stick with DS18B20 probes even if I went for a Tilt (of
-course that would provide a new SpecificGravityProvider ;-) but nothing
-says we have to care about the temperature it sends us.
-
-"""
+import time
+import Villain
 
 
-class TemperatureProviderDS18B20(Villain.Goblin):
+
+class TemperatureProviderDs18B20(Villain.Goblin):
+
+    """
+    This is an example of a basic temperature provider with basic logic
+    included to filter out known bad results.
+
+    This is the first process to make use of the new pattern of using
+    an in-meory data structure (pyangbind) based which is periodically 
+    flushed to disk/ramdisk.
+
+    This is an implementation providing temperature measurment for the
+    1wrire DS18B20 temperature probes.
+
+    This includes basic logic to filter out known bad results.
+
+    IIn this case the 1wire temperature probes can return spurious readings
+    if multiple probes are on the same bus and there is interference -
+    typically this means a reading of 85deg C is returned.
+
+    In the use case of the brewery there is never a reading which suddenly
+    becomes 85deg C - the boil and heating sparge water may return 85 deg
+    but there will be a steady rise/fall in temperature because it takes
+    a lot of energy to heat the large of volume of liquor.
+
+    Potentially Tilt Hydrometers could be an alternative provide but I
+    would prbably stick with DS18B20 probes even if I went for a Tilt (of
+    course that would provide a new SpecificGravityProvider ;-) but nothing
+    says we have to care about the temperature it sends us.
+
+    """
 
     def setup(self):
         self.rxTemp = re.compile("^.*t=(\d+)")
@@ -56,14 +61,14 @@ class TemperatureProviderDS18B20(Villain.Goblin):
 
     def _accept_adjust_and_add_a_reading(self, probe, temperature):
         adjust = 0
-        probe_offsets = self.get_config("/hardware/probe[id='%s']" % (probe))
+        probe_offsets = self.get_config("/hardware/probe[id='%s']/offsets" % (probe))
 
         for offset in probe_offsets:
-            adjustMin = offset.low
-            adjustMax = offset.high
-            adjustAmount = offset.amount
-            if temperature >= adjustMin and temperature < adjustMax:
-                adjust = adjustAmount
+            offset_min = float(offset.low)
+            offset_max = float(offset.high)
+            offset_amount = float(offset.offset)
+            if temperature >= offset_min and temperature < offset_max:
+                adjust = offset_amount
                 temperature = temperature + adjust
                 break
 
@@ -74,7 +79,7 @@ class TemperatureProviderDS18B20(Villain.Goblin):
 
     def _read_temperature_from_external_probe(self, probe):
         temperature = 0
-        ok = False
+        probe_reading_ok = False
         text = "NON"
 
         try:
@@ -82,15 +87,15 @@ class TemperatureProviderDS18B20(Villain.Goblin):
             text = o.readline()
             temp = o.readline()
             o.close()
-        except:
+        except Exception:
             pass
 
         if text.count("YES") and self.rxTemp.match(temp):		# CRC=NO for failed results
             (temp,) = self.rxTemp.match(temp).groups()
             temperature = float(temp) / 1000
-            ok = True
+            probe_reading_ok = True
 
-        return (temperature, ok)
+        return (temperature, probe_reading_ok)
 
     def _get_probes_to_monitor(self):
         probes = []
@@ -98,15 +103,13 @@ class TemperatureProviderDS18B20(Villain.Goblin):
             if probe[0:2] == "28":
                 self.log.debug('Checking if we should monitor %s' % (probe))
                 probes.append(probe)
-#                if self.probesToMonitor.has_key(probe):
-#                    probes.append(probe)
         return probes
 
     def _error_reading_from_external_temperature_probe(self, probe):
         """
         A reading of exactly 85 can be an error from the 1wire probe.
-        This rejects a reading of exactly 85 if the preceeding reading isn't 
-        close enough 
+        This rejects a reading of exactly 85 if the preceeding reading isn't
+        close enough.
         """
         if self.lastResult[probe] > 80 and self.lastResult[probe] < 85:
             pass
@@ -131,12 +134,13 @@ class TemperatureProviderDS18B20(Villain.Goblin):
 
                 # Exactly 85 indictes misread
                 if temperature == 85 and self._error_reading_from_external_temperature_probe(probe):
-                    return True
+                    return
 
                 if (self.lastResult[probe]) == 0 or len(self.odd_readings[probe]) > 5:
                     self._accept_adjust_and_add_a_reading(probe, temperature)
                 else:
-                    if temperature > self.lastResult[probe] * 1.05 or temperature < self.lastResult[probe] * 0.95:
+                    if (temperature > self.lastResult[probe] * 1.05 or
+                            temperature < self.lastResult[probe] * 0.95):
                         self._reject_result(probe, temperature, '+/- 55% swing')
                     else:
                         self._accept_adjust_and_add_a_reading(probe, temperature)
@@ -151,7 +155,7 @@ class TemperatureProviderDS18B20(Villain.Goblin):
 
 if __name__ == '__main__':
     try:
-        daemon = TemperatureProviderDS18B20('TemperatureDS18B20', 'brewerslab', '/brewhouse/temperature')
-        daemon.start()
+        MONSTER = TemperatureProviderDs18B20('TemperatureDS18B20', 'brewerslab', '/brewhouse/temperature')
+        MONSTER.start()
     except KeyboardInterrupt:
         pass

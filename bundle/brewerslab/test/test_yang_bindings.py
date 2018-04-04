@@ -7,7 +7,6 @@ from binding import brewerslab
 
 class TestYang(unittest.TestCase):
 
-
     def test_fermentation(self):
         yang = brewerslab()
         self.subject = yang.brewhouse.temperature
@@ -28,4 +27,3 @@ class TestYang(unittest.TestCase):
         offset1.offset = 0.05
         offset2 = probe1.offsets.add('100 99999')
         offset2.offset = 0.1
-
