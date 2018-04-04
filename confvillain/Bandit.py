@@ -84,9 +84,18 @@ class Bandit(Cmd):
         self.do_show = self._command_conf_show
         self.complete_show = self._autocomplete_conf_show
 
-    def _conf_header(self):
-        print '[ok][%s]' % (time.ctime())
+    def _ok(self):
         print ''
+        print '[ok][%s]' % (time.ctime())
+
+    def _error(self, err=None):
+        if err:
+            print err.message
+        print ''
+        print '[error][%s]' % (time.ctime())
+
+    def _conf_header(self):
+        self._ok()
         print '[edit]'
 
     # We use _command_xxxx prefix to show commands which will be dynamically removed
@@ -133,10 +142,18 @@ class Bandit(Cmd):
     # Show Command
     def _command_oper_show(self, args):
         'Show node in the operational database'
-        print self._get_json_cfg_view(self._db_oper, args)
+        try:
+            print self._get_json_cfg_view(self._db_oper, args)
+            self._ok()
+        except Exception, err:
+            self._error(err)
 
     def _command_conf_show(self, args):
-        print self._get_json_cfg_view(self._db_conf, args)
+        try:
+            print self._get_json_cfg_view(self._db_conf, args)
+            self._ok()
+        except Exception, err:
+            self._error(err)
 
     def _autocomplete_oper_show(self, text, line, begidx, endidx):
         return self._auto_complete(self._db_oper, line, text)
