@@ -18,22 +18,22 @@ class Bandit(Cmd):
         Cmd.__init__(self)
 
         self.allow_redirection = False
+        self.debug = False
 
         # To remove built-in commands entirely, delete their "do_*" function from the
         # cmd2.Cmd class
-        del Cmd.do_load
-        del Cmd.do_py
-        del Cmd.do_pyscript
-        del Cmd.do_shell
-        del Cmd.do_alias
-        del Cmd.do_unalias
-        del Cmd.do_shortcuts
-        del Cmd.do_edit
-        del Cmd.do_set
-        del Cmd.do_quit
-        del Cmd.do__relative_load
-        del Cmd.do_eof
-        del Cmd.do_eos
+        if hasattr(Cmd, 'do_load'): del Cmd.do_load
+        if hasattr(Cmd, 'do_py'): del Cmd.do_py
+        if hasattr(Cmd, 'do_pyscript'): del Cmd.do_pyscript
+        if hasattr(Cmd, 'do_shell'): del Cmd.do_shell
+        if hasattr(Cmd, 'do_alias'): del Cmd.do_alias
+        if hasattr(Cmd, 'do_shortcuts'): del Cmd.do_shortcuts
+        if hasattr(Cmd, 'do_edit'): del Cmd.do_edit
+        if hasattr(Cmd, 'do_set'): del Cmd.do_set
+        if hasattr(Cmd, 'do_quit'): del Cmd.do_quit
+        if hasattr(Cmd, 'do__relative_load'): del Cmd.do__relative_load
+        if hasattr(Cmd, 'do_eof'): del Cmd.do_eof
+        if hasattr(Cmd, 'do_eos'): del Cmd.do_eos
 
         self.exclude_from_help.append('do_eof')
         self.exclude_from_help.append('do_conf')
@@ -51,39 +51,10 @@ class Bandit(Cmd):
 
         oper_json = """
 {
-    "fermentation": {
-        "lowpoint": "0",
-        "monitor": false,
-        "setpoint": "0",
-        "probe": {
-            "id": ""
-        },
-        "results": {
-            "average": {
-                "hourly": "0",
-                "daily": "0",
-                "minute": "0"
-            },
-            "latest": "0"
-        },
-        "highpoint": "0"
+    "abc123" : {
+        "def": "456"
     },
-    "ferhardware": {
-        "probe": [
-            {
-                "id": "probe1"
-            },
-            {
-                "id": "probe2",
-                "offsets": [
-                    {
-                        "high": "2.00",
-                        "low": "1.00",
-                        "offset": "0"
-                    }
-                ]
-            }
-        ]
+    "abcdef" : {
     }
 }
 	"""
@@ -91,8 +62,6 @@ class Bandit(Cmd):
 
         self._db_oper = json.loads(oper_json)
 
-    def do_foo(self,ag):
-        print 'do_foo'
     def _exit_conf_mode(self):
         self._in_conf_mode = False
         print ''
@@ -122,31 +91,58 @@ class Bandit(Cmd):
 
     # We use _command_xxxx prefix to show commands which will be dynamically removed
     # or added based on mode.
-    def _autocomplete_oper_show(self, text, line, begidx, endidx):
-        # we return a list, if the list contain one entry only that will trigger
-        # completion.
-        # Note the behaviour doesn't work with : separate lsts
-        print 'line:%s' %(line)
 
-        keys_to_navigate = line[5:].split(' ')
-        print 'keystonaviage:%s' %(keys_to_navigate)
-        our_node = self._db_oper
+    def _get_node(self, our_node, path, fail_if_no_match=False):
+        """
+        Attempt to filter down an object by it's keys
 
+        our_node - an object
+        path     - a space separate path of keys
+                   Note: keys cannot contain spaces
+        """
+        keys_to_navigate = path.split(' ')
         for key in keys_to_navigate:
-            if len(key) and our_node.has_key(key):
-                print 'trying to reset our_node based on key',key
-                our_node = our_node[key]
+            if len(key):
+                if our_node.has_key(key):
+                    our_node = our_node[key]
+                elif fail_if_no_match:
+                    raise ValueError('Path: %s does not exist' % (path))
+        return our_node
 
-        print 'building completion based on'
-        print our_node
+    def _auto_complete(self, our_node, line, text, cmd='show '):
+        """
+        our_node - an object
+        line     - the full line of text (e.g. show fermentation
+        text     - the text fragment autom completing (e.g. fermentation)
+        """
+
+        path_to_find = line[len(cmd):]
+        our_node = self._get_node(our_node, path_to_find)
         cmds = []
         for key in our_node:
             if key[0:len(text)] == text:
                 cmds.append(key+ ' ')
 
-#            cmds.append(key.replace(':', '_'))
         cmds.sort()
         return cmds
+
+    def _get_json_cfg_view(self, our_node, path):
+        our_node = self._get_node(our_node, path, fail_if_no_match=True)
+        return json.dumps(our_node, sort_keys=True, indent=4, separators=(',', ': '))
+
+    # Show Command
+    def _command_oper_show(self, args):
+        'Show node in the operational database'
+        print self._get_json_cfg_view(self._db_oper, args)
+
+    def _command_conf_show(self, args):
+        print self._get_json_cfg_view(self._db_conf, args)
+
+    def _autocomplete_oper_show(self, text, line, begidx, endidx):
+        return self._auto_complete(self._db_oper, line, text)
+
+    def _autocomplete_conf_show(self, text, line, begidx, endidx):
+        return self._auto_complete(self._db_conf, line, text)
 
 
     def _command_delete(self, args):
@@ -158,15 +154,6 @@ class Bandit(Cmd):
             raise ValueError('Incomplete command: set %s' % (args))
         print 'command setw called', args
 
-    def _command_oper_show(self, args):
-        'Show node in the operational database'
-        print 'command sshow called', args
-
-    def _command_conf_show(self, args):
-        'Show node in the configuration database'
-        if len(args) < 1:
-            raise ValueError('Incomplete command: show %s' % (args))
-        print 'command sshow conf called', args
 
 
 
