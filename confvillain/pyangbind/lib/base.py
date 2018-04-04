@@ -53,6 +53,7 @@ class PybindBase(object):
 
         if ignore_opdata is True:
           if isinstance(d[element_id], dict):
+
             for entry in d[element_id].keys():
                 if hasattr(d[element_id][entry], "_is_config"):
                     if not d[element_id][entry]._is_config:
@@ -60,6 +61,7 @@ class PybindBase(object):
                 
           # perhaps this is only if the list is the top thing int he yang module?
           elif isinstance(d[element_id], list):
+            print d,d[element_id],element_id, 
             for list_entry in d[element_id]:
               if hasattr(list_entry, "_changed"):
                 if not list_entry._changed():

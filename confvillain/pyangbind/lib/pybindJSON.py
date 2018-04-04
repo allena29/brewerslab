@@ -109,7 +109,7 @@ def dumps(obj, indent=4, filter=True, skip_subtrees=[], select=False,
   if not isinstance(skip_subtrees, list):
     raise AttributeError('the subtrees to be skipped should be a list')
   if mode == 'ietf':
-    tree = pybindIETFJSONEncoder.generate_element(obj, flt=filter)
+    tree = pybindIETFJSONEncoder.generate_element(obj, flt=filter, ignore_opdata=ignore_opdata)
   else:
     tree = obj.get(filter=filter, ignore_opdata=ignore_opdata)
   for p in skip_subtrees:
