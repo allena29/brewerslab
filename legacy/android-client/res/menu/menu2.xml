@@ -1,7 +1,0 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
- 	<item android:title="Edit Process" android:id="@+id/menuEditProcess"></item>
- 	<item android:title="Fix Recipe" android:id="@+id/menuFixRecipe"></item>
- 	<item android:title="Calclog" android:id="@+id/menuCalclog"></item>
-	 	
-</menu>
-   
