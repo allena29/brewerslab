@@ -12,5 +12,15 @@ module tester {
     leaf nonkey {
       type string;
     }
+
+    container stats {
+      config false;
+
+      leaf heartrate {
+        type uint32;
+      }
+    }
+
+
 	}
 }

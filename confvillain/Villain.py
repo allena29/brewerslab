@@ -81,13 +81,21 @@ class Goblin:
                 running.write(self.dumper(self._yang))
                 running.close()
 
+            if not os.path.exists('%s/opdata/%s.cvd' % (cache_directory, self.__appname)):
+                self.log.info('No existing opdata... providing empty schema')
+                opdata = open('%s/opdata/%s.cvd' % (cache_directory, self.__appname), 'w')
+                opdata.write(self.dumper(self._yang, opdata=True))
+                opdata.close()
+
+
         if hasattr(self, 'setup') and callable(self.setup):
             self.log.info('Goblin Setup %s' % (self))
             self.setup()
 
         self.log.info('Goblin Started %s' % (self))
 
-    def dumper(self, yang):
+    @staticmethod
+    def dumper(yang, opdata=False):
         """        
         This method stores the in-memory object structure as an IETF JSON object.
         All config based nodes are dumped, but op-data is not.
@@ -97,7 +105,16 @@ class Goblin:
         This makes use of a customised version of pyangbind distributed as part
         of this repository.
         """
-        formal_json = json.loads(pybindJSON.dumps(yang, filter=False, ignore_opdata=True, mode='ietf'))
+
+        if opdata:
+            ignore_opdata = False
+            ignore_conf_leaves = True
+        else:
+            ignore_opdata = True
+            ignore_conf_leaves = False
+
+        formal_json = json.loads(pybindJSON.dumps(yang, filter=False, ignore_opdata=ignore_opdata,
+                                                  ignore_conf_leaves=ignore_conf_leaves, mode='ietf'))
         filtered = {}
         for key in formal_json:
             newkey = key.split(':')[-1]
@@ -105,7 +122,8 @@ class Goblin:
             filtered['__namespace'] = key.split(':')[0]
         return json.dumps(filtered)
 
-    def loader(self, yang, json_str):
+    @staticmethod
+    def loader(yang, json_str):
         """
         This method loads a IETF Json string representing the in-memory object structure
         and replaces the in-memory data.

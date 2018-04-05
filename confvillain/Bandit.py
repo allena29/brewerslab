@@ -3,6 +3,7 @@
 import cmd2
 import time
 import random
+import requests
 import sys
 import argparse
 import json
@@ -49,18 +50,18 @@ class Bandit(Cmd):
                             'abc': {}
                          }
 
-        oper_json = """
-{
-    "abc123" : {
-        "def": "456"
-    },
-    "abcdef" : {
-    }
-}
-	"""
+        self._db_oper = {}
+
+        # Need to discove rand programticalyl handle this
+
+        path='brewhouse/temperature'
+        if not 'brewhouse' in self._db_oper: self._db_oper['brewhouse'] = {}
+        if not 'temperature' in self._db_oper['brewhouse']: self._db_oper['brewhouse']['temperature'] = {}
+
+        # need some kind of refresh mechanism for opdata/config
+        self._db_oper['brewhouse']['temperature'] = json.loads(requests.get('http://localhost:8000/v1/datastore/opdata/TemperatureProvider').text)
 
 
-        self._db_oper = json.loads(oper_json)
 
     def _exit_conf_mode(self):
         self._in_conf_mode = False

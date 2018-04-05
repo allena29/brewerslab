@@ -56,7 +56,6 @@ class TestYang(unittest.TestCase):
         # Basic check on the serialisation
         serialised = self.subject.dumper(yang)
         expected_serialised = """{"__namespace": "tester", "list1": [{"nonkey": "", "key1": "abc123"}, {"nonkey": "now_this_value_has_been_set", "key1": "xyz987"}, {"nonkey": "", "key1": "ooo000"}]}"""
-
         self.assertEqual(serialised, expected_serialised)
 
         # After deleting an entry the serialised answer must differ
@@ -67,3 +66,8 @@ class TestYang(unittest.TestCase):
         # to give a key 'from-load'
         self.subject.loader(yang, expected_serialised.replace('ooo000', 'from-load'))
         fetched_item1 = self.subject.get_config("/list1[key1='from-load']")[0]
+
+        # Dump only opdata
+        serialised = self.subject.dumper(yang, opdata=True)
+        expected_serialised = """{"__namespace": "tester", "list1": [{"key1": "abc123", "stats": {"heartrate": 0}}, {"key1": "ooo000", "stats": {"heartrate": 0}}, {"key1": "xyz987", "stats": {"heartrate": 0}}, {"key1": "from-load", "stats": {"heartrate": 0}}]}"""
+        self.assertEqual(serialised, expected_serialised)
